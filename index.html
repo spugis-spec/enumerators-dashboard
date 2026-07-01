@@ -390,14 +390,16 @@
 
                 <div class="mb-6 border-t pt-5">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2"><span>🔍</span> Filter by Enumerator Name</h3>
-                    <div class="flex flex-wrap gap-3 items-center">
-                        <select id="publicNameFilter" multiple size="4" class="min-w-[260px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" onchange="applyPublicNameFilter()">
-                            <option value="" disabled>Load a dashboard to see names…</option>
-                        </select>
+                    <div id="publicNameChips" class="flex flex-wrap gap-2 mb-2"></div>
+                    <div class="flex flex-wrap gap-3 items-center relative">
+                        <div class="relative min-w-[260px]">
+                            <input type="text" id="publicNameSearchInput" autocomplete="off" placeholder="Start typing a name…" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" oninput="filterNameSuggestions()" onfocus="filterNameSuggestions()" onkeydown="handleNameSearchKeydown(event)">
+                            <div id="publicNameSuggestions" class="hidden absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-56 overflow-y-auto"></div>
+                        </div>
                         <button onclick="clearPublicNameFilter()" class="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg text-sm transition-colors">✕ Clear Filter</button>
                         <span id="publicNameFilterStatus" class="text-xs text-gray-500"></span>
                     </div>
-                    <p class="text-xs text-gray-400 mt-1">Hold Ctrl (Windows) or Cmd (Mac) and click to select more than one name. Leave empty to show everyone.</p>
+                    <p class="text-xs text-gray-400 mt-1">Type part of a name, then click it to add. Pick as many as you like — click the ✕ on a chip to remove one. Leave empty to show everyone.</p>
                 </div>
 
 
@@ -2633,9 +2635,13 @@
         try {
             const snap=await database.ref('dashboards').once('value');
             savedDashboards=snap.val()||{};
-            document.getElementById('savedDashboardsCount').textContent=Object.keys(savedDashboards).length;
+            const countEl=document.getElementById('savedDashboardsCount');
+            if(countEl) countEl.textContent=Object.keys(savedDashboards).length;
             renderSavedDatesList();
-        } catch(e){console.error(e);}
+        } catch(e){console.error(e);
+            const container=document.getElementById('savedDatesList');
+            if(container) container.innerHTML='<span class="text-sm text-red-500">Failed to load saved dashboards. Check your connection and refresh.</span>';
+        }
     }
 
     function renderSavedDatesList() {
@@ -2796,10 +2802,10 @@
     // ============================================
     // NAME FILTER (public view)
     // ============================================
+    let allPublicEnumeratorNames = [];
+    let selectedPublicNames = [];
+
     function populatePublicNameFilter() {
-        const sel = document.getElementById('publicNameFilter');
-        if (!sel) return;
-        const previouslySelected = new Set(Array.from(sel.selectedOptions).map(o=>o.value));
         const names = new Set();
         ['aedc','bss','nysc'].forEach(g=>{
             (reportResults[g] && reportResults[g].results || []).forEach(r=>{ if(r.fullname) names.add(r.fullname); });
@@ -2807,31 +2813,95 @@
         (Object.values(mpSavedMonths||{})).forEach(doc=>{
             ['aedc','bss','nysc'].forEach(g=>{ (doc[g]||[]).forEach(r=>{ const n=r.fullname||r.username; if(n) names.add(n); }); });
         });
-        const sorted = Array.from(names).sort((a,b)=>a.localeCompare(b));
-        if (!sorted.length) { sel.innerHTML = '<option value="" disabled>No names available yet</option>'; return; }
-        sel.innerHTML = sorted.map(n=>`<option value="${escapeHtml(n)}" ${previouslySelected.has(n)?'selected':''}>${escapeHtml(n)}</option>`).join('');
+        allPublicEnumeratorNames = Array.from(names).sort((a,b)=>a.localeCompare(b));
+        // Drop any previously selected names that no longer exist on this dashboard
+        selectedPublicNames = selectedPublicNames.filter(n=>allPublicEnumeratorNames.includes(n));
+        renderPublicNameChips();
+    }
+
+    // Renders the "type to search" suggestion dropdown as the user types.
+    function filterNameSuggestions() {
+        const input = document.getElementById('publicNameSearchInput');
+        const box = document.getElementById('publicNameSuggestions');
+        if (!input || !box) return;
+        const query = input.value.trim().toLowerCase();
+
+        const available = allPublicEnumeratorNames.filter(n=>!selectedPublicNames.includes(n));
+        const matches = query
+            ? available.filter(n=>n.toLowerCase().includes(query)).slice(0, 8)
+            : available.slice(0, 8);
+
+        if (!matches.length) {
+            box.innerHTML = `<div class="px-3 py-2 text-xs text-gray-400 italic">${allPublicEnumeratorNames.length ? 'No matching names' : 'Load a dashboard to see names'}</div>`;
+            box.classList.remove('hidden');
+            return;
+        }
+        box.innerHTML = matches.map(n=>
+            `<div class="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer" onclick="selectPublicName('${escapeHtml(n).replace(/'/g,"\\'")}')">${escapeHtml(n)}</div>`
+        ).join('');
+        box.classList.remove('hidden');
+    }
+
+    function handleNameSearchKeydown(e) {
+        if (e.key === 'Escape') { document.getElementById('publicNameSuggestions').classList.add('hidden'); }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const box = document.getElementById('publicNameSuggestions');
+            const first = box && box.querySelector('div[onclick]');
+            if (first) first.click();
+        }
+    }
+
+    function selectPublicName(name) {
+        if (!selectedPublicNames.includes(name)) selectedPublicNames.push(name);
+        const input = document.getElementById('publicNameSearchInput');
+        if (input) { input.value = ''; input.focus(); }
+        document.getElementById('publicNameSuggestions').classList.add('hidden');
+        renderPublicNameChips();
+        applyPublicNameFilter();
+    }
+
+    function removePublicName(name) {
+        selectedPublicNames = selectedPublicNames.filter(n=>n!==name);
+        renderPublicNameChips();
+        applyPublicNameFilter();
+    }
+
+    function renderPublicNameChips() {
+        const chipBox = document.getElementById('publicNameChips');
+        if (!chipBox) return;
+        chipBox.innerHTML = selectedPublicNames.map(n=>
+            `<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-sm font-medium pl-3 pr-2 py-1 rounded-full">
+                ${escapeHtml(n)}
+                <button onclick="removePublicName('${escapeHtml(n).replace(/'/g,"\\'")}')" class="text-blue-500 hover:text-blue-800 font-bold leading-none">✕</button>
+            </span>`
+        ).join('');
     }
 
     function applyPublicNameFilter() {
-        const sel = document.getElementById('publicNameFilter');
         const statusEl = document.getElementById('publicNameFilterStatus');
-        if (!sel) return;
-        const selected = Array.from(sel.selectedOptions).map(o=>o.value).filter(Boolean);
         const rows = document.querySelectorAll('tr[data-fullname]');
         rows.forEach(row=>{
             const name = row.getAttribute('data-fullname');
-            const show = selected.length === 0 || selected.includes(name);
+            const show = selectedPublicNames.length === 0 || selectedPublicNames.includes(name);
             row.style.display = show ? '' : 'none';
         });
-        if (statusEl) statusEl.textContent = selected.length ? `Showing ${selected.length} selected name${selected.length>1?'s':''}` : '';
+        if (statusEl) statusEl.textContent = selectedPublicNames.length ? `Showing ${selectedPublicNames.length} selected name${selectedPublicNames.length>1?'s':''}` : '';
     }
 
     function clearPublicNameFilter() {
-        const sel = document.getElementById('publicNameFilter');
-        if (!sel) return;
-        Array.from(sel.options).forEach(o=>o.selected=false);
+        selectedPublicNames = [];
+        renderPublicNameChips();
         applyPublicNameFilter();
     }
+
+    // Close the suggestions dropdown when clicking outside it
+    document.addEventListener('click', (e)=>{
+        const wrap = document.getElementById('publicNameSearchInput');
+        const box = document.getElementById('publicNameSuggestions');
+        if (!wrap || !box) return;
+        if (e.target !== wrap && !box.contains(e.target)) box.classList.add('hidden');
+    });
 
     function refreshDashboard(){Promise.all([loadSavedDashboards(),loadPairingsFromCloud()]).then(()=>loadLatestDashboard());}
     function updateAndSaveDashboard(){saveDashboardToCloud();}
