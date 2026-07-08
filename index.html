@@ -1951,6 +1951,31 @@
             return `<tr data-fullname="${escapeHtml(r.fullname)}" style="background:${i%2===0?colors[group].bg:'#fff'};"><td style="border:1px solid ${colors[group].border};padding:4px 8px;">${i+1}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;">${escapeHtml(r.fullname)}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;">${makeEditableCell(r.dss,group,i,'dss',colors[group].border)}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;">${makeEditableCell(r.ht,group,i,'ht',colors[group].border)}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;">${makeEditableCell(r.cust,group,i,'cust',colors[group].border)}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;">${makeEditableCell(r.lt,group,i,'lt',colors[group].border)}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;">${makeEditableCell(r.issues,group,i,'issues',colors[group].border)}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;font-weight:600;">${r.total}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;">${statusDisplay}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;min-width:100px;max-width:160px;word-break:break-word;">${feederCell}</td><td style="border:1px solid ${colors[group].border};padding:4px 8px;text-align:center;min-width:120px;">${remarkCell}</td></tr>`;
         }).join('');
 
+        // Append clearly-flagged rows for new/not-yet-onboarded enumerators —
+        // never counted in the totals below. Admins get a live "who did they
+        // work with" picker right here; the public view shows read-only text.
+        const provisionalResults = (reportResults[group]||{}).provisionalResults || [];
+        if (provisionalResults.length) {
+            tbody.innerHTML += provisionalResults.map(r => {
+                const nameCell = isAdminMode
+                    ? `${escapeHtml(r.fullname)}<div style="margin-top:3px;">${buildDashboardShadowSelect(group, r)}</div>`
+                    : `${escapeHtml(r.fullname)}<div style="font-size:10px;color:#92400e;font-weight:500;margin-top:2px;">${escapeHtml(r.summaryLabel||'')}</div>`;
+                return `<tr data-fullname="${escapeHtml(r.fullname)}" style="background:#fef9c3;border-top:2px dashed #f59e0b;">
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">🆕</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;">${nameCell}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.dss||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.ht||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.cust||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.lt||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.issues||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;font-weight:600;">${r.total||0}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;font-size:10px;color:#92400e;font-weight:600;">Not counted</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;font-size:9px;color:#9ca3af;">—</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;font-size:9px;color:#9ca3af;">—</td>
+                </tr>`;
+            }).join('');
+        }
+
         const t=totals||{};
         tfoot.innerHTML=`<tr><td style="border:1px solid ${colors[group].border};padding:6px 8px;" colspan="2">TOTAL (${(results||[]).length})</td><td style="border:1px solid ${colors[group].border};padding:6px 8px;text-align:center;">${t.dss||0}</td><td style="border:1px solid ${colors[group].border};padding:6px 8px;text-align:center;">${t.ht||0}</td><td style="border:1px solid ${colors[group].border};padding:6px 8px;text-align:center;">${t.cust||0}</td><td style="border:1px solid ${colors[group].border};padding:6px 8px;text-align:center;">${t.lt||0}</td><td style="border:1px solid ${colors[group].border};padding:6px 8px;text-align:center;">${t.issues||0}</td><td style="border:1px solid ${colors[group].border};padding:6px 8px;text-align:center;">${t.total||0}</td><td style="border:1px solid ${colors[group].border};padding:6px 8px;"></td><td style="border:1px solid ${colors[group].border};padding:6px 8px;"></td><td style="border:1px solid ${colors[group].border};padding:6px 8px;"></td></tr>`;
     }
@@ -2539,35 +2564,62 @@
         const rStartDate = reportResults.dateKey || null;
         const rEndDate = reportResults.endDateKey || rStartDate;
 
-        const buildSheet = (results) => (results||[]).map((r,i)=>({
-            'S/N':i+1,
-            'Username':r.username,
-            'Full Name':r.fullname,
-            'DT/DSS':r.dss||0,
-            'HT Pole':r.ht||0,
-            'Customer':r.cust||0,
-            'LT Pole':r.lt||0,
-            'Issues':r.issues||0,
-            'Total':r.total||0,
-            'Status':getStatusStr(r),
-            'Feeder': (r.total>0 && r.status==='present')
-                ? (isDateRange ? (getAllFeeders(r.username, rStartDate, rEndDate).join('; ')||'') : (getTopFeeder(r.username, rStartDate, rEndDate)||''))
-                : '',
-            'Excuse Reason':r.excuseRemark||'',
-            'Approval':r.excuseApproval||'',
-            'Zero Remark':r.zeroRemark||''
-        }));
+        const buildSheet = (results, provisional) => {
+            const rows = (results||[]).map((r,i)=>({
+                'S/N':i+1,
+                'Username':r.username,
+                'Full Name':r.fullname,
+                'DT/DSS':r.dss||0,
+                'HT Pole':r.ht||0,
+                'Customer':r.cust||0,
+                'LT Pole':r.lt||0,
+                'Issues':r.issues||0,
+                'Total':r.total||0,
+                'Status':getStatusStr(r),
+                'Feeder': (r.total>0 && r.status==='present')
+                    ? (isDateRange ? (getAllFeeders(r.username, rStartDate, rEndDate).join('; ')||'') : (getTopFeeder(r.username, rStartDate, rEndDate)||''))
+                    : '',
+                'Excuse Reason':r.excuseRemark||'',
+                'Approval':r.excuseApproval||'',
+                'Zero Remark':r.zeroRemark||'',
+                'Enumerator Type':'Onboarded'
+            }));
+            // Append new/not-yet-onboarded enumerators — clearly tagged, and
+            // excluded from the Grand Total sheet (which is built from `totals`
+            // directly and never touches these rows). Feeder and work-plan
+            // summary were already resolved day-by-day in generateReport().
+            (provisional||[]).forEach(r=>{
+                rows.push({
+                    'S/N': rows.length+1,
+                    'Username': r.username,
+                    'Full Name': r.fullname,
+                    'DT/DSS': r.dss||0,
+                    'HT Pole': r.ht||0,
+                    'Customer': r.cust||0,
+                    'LT Pole': r.lt||0,
+                    'Issues': r.issues||0,
+                    'Total': r.total||0,
+                    'Status': 'Present (not counted)',
+                    'Feeder': isDateRange ? ((r.allFeeders||[]).join('; ')||'') : (r.savedFeeder||''),
+                    'Excuse Reason': '',
+                    'Approval': '',
+                    'Zero Remark': r.summaryLabel || '',
+                    'Enumerator Type': 'NEW — awaiting license (excluded from totals)'
+                });
+            });
+            return rows;
+        };
 
         if(shouldUsePaired){
-            const aedcData=buildSheet(reportResults.aedc.results);
+            const aedcData=buildSheet(reportResults.aedc.results, reportResults.aedc.provisionalResults);
             if(aedcData.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(aedcData),'AEDC');
-            const bssData=buildSheet(reportResults.bss.results);
+            const bssData=buildSheet(reportResults.bss.results, reportResults.bss.provisionalResults);
             if(bssData.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(bssData),'BSS');
-            const nyscData=buildSheet(reportResults.nysc.results);
+            const nyscData=buildSheet(reportResults.nysc.results, reportResults.nysc.provisionalResults);
             if(nyscData.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(nyscData),'NYSC');
         } else {
             ['aedc','bss','nysc'].forEach(g=>{
-                const d=buildSheet(reportResults[g].results);
+                const d=buildSheet(reportResults[g].results, reportResults[g].provisionalResults);
                 if(d.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d),g.toUpperCase());
             });
         }
@@ -2710,8 +2762,8 @@
         return Object.keys(v).sort((a,b)=>Number(a)-Number(b)).map(k=>v[k]);
     }
     function normGroup(g) {
-        if (!g || typeof g !== 'object') return { results: [], totals: {} };
-        return { ...g, results: toArray(g.results), totals: (g.totals && typeof g.totals==='object') ? g.totals : {} };
+        if (!g || typeof g !== 'object') return { results: [], totals: {}, provisionalResults: [] };
+        return { ...g, results: toArray(g.results), totals: (g.totals && typeof g.totals==='object') ? g.totals : {}, provisionalResults: toArray(g.provisionalResults) };
     }
 
     async function loadDashboardByDate(dateKey) {
