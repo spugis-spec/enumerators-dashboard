@@ -1957,9 +1957,10 @@
         const provisionalResults = (reportResults[group]||{}).provisionalResults || [];
         if (provisionalResults.length) {
             tbody.innerHTML += provisionalResults.map(r => {
+                const workedWithLabel = r.shadowPairing ? formatShadowPairingLabel(r.shadowPairing) : '';
                 const nameCell = isAdminMode
                     ? `${escapeHtml(r.fullname)}<div style="margin-top:3px;">${buildDashboardShadowSelect(group, r)}</div>`
-                    : `${escapeHtml(r.fullname)}<div style="font-size:10px;color:#92400e;font-weight:500;margin-top:2px;">${escapeHtml(r.summaryLabel||'')}</div>`;
+                    : (workedWithLabel ? `${escapeHtml(r.fullname)}<div style="font-size:10px;color:#92400e;font-weight:500;margin-top:2px;">${escapeHtml(workedWithLabel)}</div>` : escapeHtml(r.fullname));
                 return `<tr data-fullname="${escapeHtml(r.fullname)}" style="background:#fef9c3;border-top:2px dashed #f59e0b;">
                     <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">🆕</td>
                     <td style="border:1px solid #fde68a;padding:4px 8px;">${nameCell}</td>
@@ -3007,6 +3008,8 @@
         });
         const rowKey = r.username || r.fullname;
         const label = current ? `<span style="font-size:10px;color:#92400e;font-weight:500;">${escapeHtml(formatShadowPairingLabel(current))}</span>` : '';
+        // Note: legacy r.summaryLabel data from old saved dashboards (e.g. "✍️ manually entered")
+        // is intentionally ignored here — only a real r.shadowPairing selection produces a label.
         return `<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;">
             <select class="shadow-pair-select" style="font-size:9px;padding:2px 4px;border:1px solid #fde68a;border-radius:4px;background:#fffbeb;" onchange="setShadowPairing('${group}','${escapeHtml(rowKey)}',this.value)">${options.join('')}</select>
             ${label}
