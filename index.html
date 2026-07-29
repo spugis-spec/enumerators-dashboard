@@ -1846,6 +1846,15 @@
                     else if(r.status==='excused'){excusedCount++;excusedList.push({name:`${r.fullname} (${label})`,remark:r.excuseRemark||'',approval:r.excuseApproval||'pending',group,index:rIdx});}
                 }
             });
+            // Not-yet-onboarded enumerators: their figures never join the totals,
+            // but their attendance status (set by admin under "New Enumerators")
+            // should still show up in these counts/lists like everyone else's.
+            (reportResults[group].provisionalResults||[]).forEach(r=>{
+                if(r.status==='present'){presentCount++;}
+                else if(r.status==='absent'){absentCount++;absentList.push({name:`${r.fullname} (${label}) 🆕`});}
+                else if(r.status==='sick'){sickCount++;sickList.push({name:`${r.fullname} (${label}) 🆕`});}
+                else if(r.status==='excused'){excusedCount++;excusedList.push({name:`${r.fullname} (${label}) 🆕`,remark:r.excuseRemark||'',approval:r.excuseApproval||'pending'});}
+            });
         });
 
         document.getElementById('presentCount').textContent=presentCount;
@@ -2206,6 +2215,20 @@
         };
         processTeams(aedcNyscTeams,'AEDC/NYSC');
         processTeams(bssNyscTeams,'BSS/NYSC');
+
+        // Not-yet-onboarded enumerators aren't part of a team pairing, so they
+        // don't run through processTeams — but their admin-set status should
+        // still be reflected in the counts/lists here, same as the legacy view.
+        const provGroupLabel = {aedc:'AEDC',bss:'BSS',nysc:'NYSC'};
+        ['aedc','bss','nysc'].forEach(group=>{
+            (reportResults[group]?.provisionalResults||[]).forEach(r=>{
+                const label = provGroupLabel[group];
+                if(r.status==='present'){presentCount++;}
+                else if(r.status==='absent'){absentCount++;absentList.push({name:`${r.fullname} (${label}) 🆕`});}
+                else if(r.status==='sick'){sickCount++;sickList.push({name:`${r.fullname} (${label}) 🆕`});}
+                else if(r.status==='excused'){excusedCount++;excusedList.push({name:`${r.fullname} (${label}) 🆕`,remark:r.excuseRemark||'',approval:r.excuseApproval||'pending'});}
+            });
+        });
 
         document.getElementById('pairedPresentCount').textContent=presentCount;
         document.getElementById('pairedAbsentCount').textContent=absentCount;
