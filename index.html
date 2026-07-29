@@ -379,6 +379,23 @@
         <!-- ==================== DASHBOARD TAB ==================== -->
         <div id="content-dashboard" class="tab-content hidden">
             <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+
+                <!-- QUICK CONTROLS BAR: always visible — lets you switch dates without expanding the panel below -->
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-200 no-print" id="quickControlsBar">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <label for="quickDateSelect" class="text-sm font-semibold text-gray-700 flex items-center gap-1 whitespace-nowrap">📅 Date:</label>
+                        <button onclick="quickShiftDate(1)" title="Newer date" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm">◀</button>
+                        <select id="quickDateSelect" onchange="quickJumpToDate(this.value)" class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white" style="min-width:220px;">
+                            <option value="">Loading dates…</option>
+                        </select>
+                        <button onclick="quickShiftDate(-1)" title="Older date" class="px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm">▶</button>
+                    </div>
+                    <button onclick="toggleControlsPanel()" id="controlsPanelToggleBtn" class="flex items-center gap-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md text-sm transition-colors">
+                        🔽 Filters, Options &amp; Tools
+                    </button>
+                </div>
+
+                <div id="controlsPanel" class="hidden">
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"><span>📅</span> Select Dashboard Date</h3>
                     <div class="flex flex-wrap gap-4 items-end">
@@ -454,6 +471,7 @@
                         </div>
                     </div>
                 </div>
+                </div><!-- /controlsPanel -->
 
                 <!-- ===== DASHBOARD CAPTURE AREA ===== -->
                 <div id="dashboardCapture">
@@ -603,6 +621,11 @@
                         <div id="sectionGrandTotalPaired" style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                             <h3 style="font-size: 0.9rem; font-weight: 600; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #a855f7; border-radius: 50%;"></span>Grand Total Summary</h3>
                             <div style="overflow-x: auto;"><table id="pairedGrandTotalTable" style="width: 100%; border-collapse: collapse; font-size: 11px;"><thead><tr style="background: #faf5ff;"><th style="border: 1px solid #e9d5ff; padding: 6px 8px; text-align: left;">Group</th><th style="border: 1px solid #e9d5ff; padding: 6px 8px; text-align: center;">DT/DSS</th><th style="border: 1px solid #e9d5ff; padding: 6px 8px; text-align: center;">HT Pole</th><th style="border: 1px solid #e9d5ff; padding: 6px 8px; text-align: center;">Customer</th><th style="border: 1px solid #e9d5ff; padding: 6px 8px; text-align: center;">LT Pole</th><th style="border: 1px solid #e9d5ff; padding: 6px 8px; text-align: center;">Issues</th><th style="border: 1px solid #e9d5ff; padding: 6px 8px; text-align: center;">Total</th></tr></thead><tbody id="pairedGrandTotalBody"></tbody><tfoot id="pairedGrandTotalFoot" style="background: #e9d5ff; font-weight: 700;"></tfoot></table></div>
+                        </div>
+                        <div id="sectionNewEnumeratorsPaired" style="background: #fffbeb; border: 1.5px dashed #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 12px; display:none;">
+                            <h3 style="font-size: 0.9rem; font-weight: 600; margin: 0 0 4px 0; display: flex; align-items: center; gap: 6px; color:#92400e;"><span>🆕</span> New / Not-Yet-Onboarded Enumerators</h3>
+                            <p style="font-size:10px;color:#92400e;margin:0 0 8px 0;">Shown here for visibility, but their figures are <b>not included</b> in any of the totals above — they'll count normally once onboarded.</p>
+                            <div style="overflow-x: auto;"><table id="pairedNewEnumeratorsTable" style="width: 100%; border-collapse: collapse; font-size: 11px;"><thead><tr style="background: #fef3c7;"><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: center;">Group</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: left;">Full Name</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: center;">DT/DSS</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: center;">HT</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: center;">Cust</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: center;">LT</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: center;">Issues</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: center;">Total</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: center;">Status</th><th style="border: 1px solid #fde68a; padding: 6px 8px; text-align: left;">Who They Worked With</th></tr></thead><tbody id="pairedNewEnumeratorsBody"></tbody></table></div>
                         </div>
                         <div id="sectionAbsentSickPaired" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                             <div style="background: white; border-radius: 8px; padding: 10px; border-top: 3px solid #ef4444; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"><h4 style="font-size: 0.8rem; font-weight: 600; color: #dc2626; margin: 0 0 6px 0;">🚫 Absent</h4><div id="pairedAbsentList" style="font-size: 0.7rem;"></div></div>
@@ -2199,7 +2222,47 @@
         renderPairedTable('aedcNysc',aedcNyscTeams);
         renderPairedTable('bssNysc',bssNyscTeams);
         updatePairedGrandTotal(aedcNyscTeams,bssNyscTeams);
+        renderPairedNewEnumerators();
         updatePairedCharts(aedcNyscTeams,bssNyscTeams);
+    }
+
+    // New/not-yet-onboarded enumerators aren't part of any official team
+    // pairing, so — unlike the legacy table — we can't slot them into a
+    // specific team row here. Instead we list them all together in one
+    // clearly-flagged section below the paired tables, exactly as the
+    // legacy view flags them: figures shown, status shown, "who they
+    // worked with" shown, but explicitly excluded from every total.
+    function renderPairedNewEnumerators() {
+        const section = document.getElementById('sectionNewEnumeratorsPaired');
+        const tbody = document.getElementById('pairedNewEnumeratorsBody');
+        if (!section || !tbody) return;
+        const groupMeta = { aedc: {label:'AEDC', badge:'#3b82f6'}, bss: {label:'BSS', badge:'#22c55e'}, nysc: {label:'NYSC', badge:'#f97316'} };
+        const statusColors={present:{bg:'#dcfce7',color:'#166534'},absent:{bg:'#fee2e2',color:'#991b1b'},sick:{bg:'#fef3c7',color:'#92400e'},excused:{bg:'#e0e7ff',color:'#3730a3'}};
+        let rows = [];
+        ['aedc','bss','nysc'].forEach(group=>{
+            const list = (reportResults[group]||{}).provisionalResults || [];
+            list.forEach(r=>{
+                const meta = groupMeta[group];
+                const publicSummaryLabel = (r.summaryLabel === '✍️ manually entered') ? '' : (r.summaryLabel || '');
+                const sc = statusColors[r.status]||statusColors.present;
+                const label = r.status==='present' ? `${r.total||0} ✓` : r.status.charAt(0).toUpperCase()+r.status.slice(1);
+                rows.push(`<tr style="background:#fef9c3;">
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;"><span style="background:${meta.badge};color:#fff;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700;">${meta.label}</span></td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;">${escapeHtml(r.fullname)}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.dss||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.ht||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.cust||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.lt||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.issues||'-'}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;font-weight:600;">${r.total||0}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;"><span style="background:${sc.bg};color:${sc.color};padding:2px 6px;border-radius:4px;font-size:10px;">${label}</span></td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;font-size:10px;color:#92400e;">${escapeHtml(publicSummaryLabel) || '<span style="color:#9ca3af;">—</span>'}</td>
+                </tr>`);
+            });
+        });
+        if (!rows.length) { section.style.display='none'; tbody.innerHTML=''; return; }
+        section.style.display='block';
+        tbody.innerHTML = rows.join('');
     }
 
     function updatePairedPerformers(type, teams) {
@@ -2743,6 +2806,7 @@
                 <div id="year-body-${yr}" style="display:none;">${monthHtml}</div>
             </div>`;
         }).join('');
+        populateQuickDateSelect();
     }
 
     function toggleYear(yr){
@@ -2755,6 +2819,45 @@
     }
 
     function toggleMonth(mk){const el=document.getElementById(`dates-${mk}`),arr=document.getElementById(`arrow-${mk}`);if(!el)return;if(el.classList.contains('expanded')){el.classList.remove('expanded');arr.textContent='▼';}else{el.classList.add('expanded');arr.textContent='▲';}}
+
+    // ============================================
+    // QUICK CONTROLS: date switcher + auto-collapsing filter panel
+    // ============================================
+    function toggleControlsPanel(forceOpen) {
+        const panel = document.getElementById('controlsPanel');
+        const btn = document.getElementById('controlsPanelToggleBtn');
+        if (!panel) return;
+        const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : panel.classList.contains('hidden');
+        panel.classList.toggle('hidden', !shouldOpen);
+        if (btn) btn.innerHTML = shouldOpen ? '🔼 Hide Filters, Options &amp; Tools' : '🔽 Filters, Options &amp; Tools';
+    }
+
+    function populateQuickDateSelect() {
+        const sel = document.getElementById('quickDateSelect');
+        if (!sel) return;
+        const dates = Object.keys(savedDashboards || {}).sort().reverse();
+        if (!dates.length) { sel.innerHTML = '<option value="">No saved dashboards</option>'; return; }
+        const current = reportResults && reportResults.dateKey;
+        sel.innerHTML = dates.map(dk => {
+            const isPaired = isPairedMode(dk);
+            const label = formatDateFull(dk) + (isPaired ? ' 🤝' : '');
+            return `<option value="${dk}" ${dk === current ? 'selected' : ''}>${escapeHtml(label)}</option>`;
+        }).join('');
+    }
+
+    function quickJumpToDate(dateKey) {
+        if (!dateKey) return;
+        loadDashboardByDate(dateKey).then(() => toggleControlsPanel(false));
+    }
+
+    function quickShiftDate(direction) {
+        const sel = document.getElementById('quickDateSelect');
+        if (!sel || !sel.options.length) return;
+        let idx = sel.selectedIndex < 0 ? 0 : sel.selectedIndex + direction;
+        if (idx < 0 || idx >= sel.options.length) return;
+        sel.selectedIndex = idx;
+        quickJumpToDate(sel.value);
+    }
 
     // Helper: convert anything Firebase might return for an array back to a real JS array
     function toArray(v) {
@@ -2824,6 +2927,8 @@
                 if (inp) inp.value = rmVal;
                 updateFeederRemarkDisplay();
             } catch(e) { /* non-critical */ }
+            populateQuickDateSelect();
+            toggleControlsPanel(false);
             showStatus(`✅ Loaded dashboard for ${formatDateFull(dateKey)}`, 'success');
         } catch(e) {
             console.error('loadDashboardByDate error:', e);
