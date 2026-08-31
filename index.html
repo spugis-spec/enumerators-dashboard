@@ -363,6 +363,12 @@
             backdrop-filter: blur(10px); transition: all 0.2s ease;
         }
         .hero-pill:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); box-shadow: 0 8px 20px -8px rgba(0,0,0,0.5); }
+        .hero-pill-wa {
+            background: rgba(37,211,102,0.24); border-color: rgba(37,211,102,0.55);
+            box-shadow: 0 8px 22px -12px rgba(37,211,102,0.9);
+        }
+        .hero-pill-wa:hover { background: rgba(37,211,102,0.42); }
+        .hero-pill-wa svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
         .hero-pill-static { cursor: default; }
         .hero-pill-static:hover { transform: none; background: rgba(255,255,255,0.16); box-shadow: none; }
 
@@ -632,6 +638,10 @@
                           <span id="accessBadge" class="hero-pill hero-pill-static">&#128065;&#65039; Public View</span>
                           <button type="button" onclick="refreshDashboard()" class="hero-pill">&#128260; Refresh</button>
                           <button type="button" id="controlsPanelToggleBtn" onclick="toggleControlsPanel()" class="hero-pill">&#9881;&#65039; Filters, Options &amp; Tools</button>
+                          <button type="button" id="heroWhatsAppBtn" onclick="shareHTMLToWhatsApp()" class="hero-pill hero-pill-wa" title="Export this dashboard as HTML and send it straight to WhatsApp">
+                            <svg viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><path fill="#25D366" d="M16 0C7.2 0 0 7.2 0 16c0 2.8.7 5.5 2.1 7.9L0 32l8.3-2.2c2.3 1.3 5 1.9 7.7 1.9 8.8 0 16-7.2 16-16S24.8 0 16 0z"/><path fill="#fff" d="M24.3 20.2c-.4 1-2 1.9-2.8 2-.7.1-1.6.1-2.6-.2-3.9-1.2-6.4-5-6.6-5.3-.2-.3-1.6-2.1-1.6-4s1-2.8 1.4-3.2c.3-.3.8-.4 1-.4h.7c.2 0 .5 0 .8.6.3.7 1 2.5 1.1 2.7.1.2.1.4 0 .7-.1.2-.2.4-.4.6l-.4.5c-.2.2-.3.4-.2.7.2.4.8 1.5 1.8 2.4 1.2 1.2 2.3 1.6 2.6 1.7.3.1.5.1.7-.1.2-.2.8-.9 1-1.2.2-.3.4-.3.7-.2.3.1 2 1 2.4 1.2.3.2.5.2.6.4.1.2.1.9-.2 1.9z"/></svg>
+                            <span>Share to WhatsApp</span>
+                          </button>
                         </div>
 
                         <h2 class="gis-hero-title" id="dashboardDateHeader">&#128202; Enumeration Dashboard</h2>
@@ -2680,7 +2690,10 @@
     // ============================================
     // HTML EXPORT  (replaces PNG export)
     // ============================================
-    function exportToHTML() {
+    // Builds the self-contained exported dashboard HTML + its filename.
+    // Shared by exportToHTML() (download) and shareHTMLToWhatsApp() (share sheet)
+    // so both always produce exactly the same file and name.
+    function buildDashboardExportHTML() {
         const hasData = (reportResults.aedc.results||[]).length
                       || (reportResults.bss.results||[]).length
                       || (reportResults.nysc.results||[]).length;
@@ -2816,7 +2829,13 @@
 </body>
 </html>`;
 
-        // ── 5. Trigger download ─────────────────────────────────────────────
+        return { htmlContent, filename, pageTitleDisplay };
+    }
+
+    function exportToHTML() {
+        const built = buildDashboardExportHTML();
+        if (!built) return;
+        const { htmlContent, filename } = built;
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
         const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
@@ -2827,6 +2846,44 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         showStatus(`✅ HTML exported as ${filename}`, 'success');
+    }
+
+    // Shares the exact same exported HTML file (same filename as Export HTML)
+    // straight to WhatsApp via the device/browser share sheet.
+    async function shareHTMLToWhatsApp() {
+        const built = buildDashboardExportHTML();
+        if (!built) return;
+        const { htmlContent, filename, pageTitleDisplay } = built;
+
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const file = new File([blob], filename, { type: 'text/html' });
+        const shareText = pageTitleDisplay || 'GIS Enumeration & Asset Mapping Performance Dashboard';
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({ files: [file], title: filename, text: shareText });
+                showStatus(`✅ Shared ${filename}`, 'success');
+                return;
+            } catch (err) {
+                if (err && err.name === 'AbortError') return;
+                console.error('Web Share failed:', err);
+            }
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const noteText = `${shareText}\n\nFile "${filename}" was just downloaded — please attach it here from your Downloads folder.`;
+        const params = new URLSearchParams({ text: noteText });
+        const waUrl = isMobile
+            ? `https://wa.me/?${params.toString()}`
+            : `https://web.whatsapp.com/send?${params.toString()}`;
+        window.open(waUrl, '_blank', 'noopener');
+        showStatus(`📥 Downloaded ${filename} — attach it to WhatsApp manually (your browser doesn't support direct file sharing)`, 'info');
     }
 
     // ============================================
