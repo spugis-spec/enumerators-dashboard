@@ -245,6 +245,7 @@
         .status-absent { background-color: #fee2e2; color: #991b1b; }
         .status-sick { background-color: #fef3c7; color: #92400e; }
         .status-excused { background-color: #e0e7ff; color: #3730a3; }
+        .status-supervision { background-color: #ede9fe; color: #5b21b6; }
 
         /* ── Badges ── */
         .badge-approved { background: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
@@ -393,13 +394,15 @@
         .hero-select:focus { outline: 2px solid rgba(255,255,255,0.55); }
         .hero-select option { color: #0f172a; }
 
-        /* Panel that holds the dashboard: let the hero sit above the collapsible tools */
+        /* Dashboard tab: single hero heading, tools collapsed and opening ABOVE the dashboard */
         #content-dashboard > .bg-white.rounded-xl { display: flex; flex-direction: column; padding: 18px !important; background: transparent !important; box-shadow: none !important; border: none !important; }
-        #content-dashboard > .bg-white.rounded-xl > #dashboardCapture { order: 1; }
         #content-dashboard > .bg-white.rounded-xl > #controlsPanel {
-            order: 2; background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 18px; margin-top: 18px; box-shadow: var(--shadow-sm);
+            order: 1; background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm);
         }
+        #content-dashboard > .bg-white.rounded-xl > #dashboardCapture { order: 2; }
+        /* On the dashboard tab only the hero heading shows */
+        body.dashboard-view #pageTitleBlock { display: none; }
 
         /* Slim, unobtrusive tab pills */
         #tabNavigation { background: transparent !important; border: none !important; box-shadow: none !important; margin-bottom: 14px; }
@@ -502,8 +505,15 @@
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"><span>📅</span> Select Dashboard Date</h3>
                     <div class="flex flex-wrap gap-4 items-end">
-                        <div class="flex-1 min-w-[200px]"><label class="block text-sm font-medium text-gray-700 mb-1">Date</label><input type="date" id="publicStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div>
-                        <div class="flex items-end"><button onclick="loadPublicDashboard()" class="py-2 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors">Load Dashboard</button></div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <label class="flex items-center gap-2"><input type="radio" name="publicDateMode" value="single" checked class="text-blue-600" onchange="togglePublicDateMode()"><span>Single Date</span></label>
+                            <label class="flex items-center gap-2"><input type="radio" name="publicDateMode" value="range" class="text-blue-600" onchange="togglePublicDateMode()"><span>Date Range</span></label>
+                        </div>
+                        <div class="flex flex-wrap gap-4 w-full">
+                            <div class="flex-1 min-w-[200px]"><label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label><input type="date" id="publicStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div>
+                            <div class="flex-1 min-w-[200px]" id="publicEndDateContainer"><label class="block text-sm font-medium text-gray-700 mb-1">End Date</label><input type="date" id="publicEndDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" disabled></div>
+                            <div class="flex items-end"><button onclick="loadPublicDashboard()" class="py-2 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors">Load Dashboard</button></div>
+                        </div>
                     </div>
                     <div class="mt-4"><h4 class="text-sm font-medium text-gray-700 mb-2">Available Saved Dashboards:</h4><div id="savedDatesList" class="space-y-2"><span class="text-sm text-gray-500">Loading...</span></div></div>
                 </div>
@@ -522,16 +532,15 @@
                     <p class="text-xs text-gray-400 mt-1">Type part of a name, then click it to add. Pick as many as you like — click the ✕ on a chip to remove one. Leave empty to show everyone.</p>
                 </div>
 
-
                 <!-- Action Buttons -->
                 <div class="flex flex-wrap gap-2 mb-4 no-print">
                     <button onclick="refreshDashboard()" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-2 text-sm"><span>🔄</span> Refresh Data</button>
                     <button onclick="exportToHTML()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition-colors flex items-center gap-1 text-sm"><span>📄</span> Export HTML</button>
+                    <button onclick="shareHTMLToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition-colors flex items-center gap-1 text-sm"><span>💬</span> Share to WhatsApp</button>
                     <button onclick="exportToPNG()" class="bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition-colors flex items-center gap-1 text-sm"><span>🖼️</span> Export PNG</button>
                     <button onclick="window.print()" class="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-2 text-sm"><span>🖨️</span> Print</button>
                     <button onclick="exportDashboardToExcel()" class="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition-colors flex items-center gap-2 text-sm"><span>📥</span> Export Excel</button>
                 </div>
-
 
                 <!-- VIEW TOGGLE (only shown for paired-mode dates) -->
                 <div id="viewToggleBar" class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 mb-4 no-print hidden">
@@ -562,8 +571,8 @@
                         </div>
                     </div>
                     <div id="pairedVisibilityControls" class="flex flex-wrap gap-4 items-center hidden">
-                        <label class="flex items-center gap-1 text-sm"><input type="checkbox" id="showAedcNysc" checked onchange="toggleSection('aedcNyscPaired')"><span>AEDC/NYSC Table</span></label>
-                        <label class="flex items-center gap-1 text-sm"><input type="checkbox" id="showBssNysc" checked onchange="toggleSection('bssNyscPaired')"><span>BSS/NYSC Table</span></label>
+                        <label class="flex items-center gap-1 text-sm"><input type="checkbox" id="showAedcNysc" checked onchange="toggleSection('aedcNyscPaired')"><span>AEDC Teams Table</span></label>
+                        <label class="flex items-center gap-1 text-sm"><input type="checkbox" id="showBssNysc" checked onchange="toggleSection('bssNyscPaired')"><span>BSS / NYSC Teams Table</span></label>
                         <label class="flex items-center gap-1 text-sm"><input type="checkbox" id="showGrandTotalPaired" checked onchange="toggleSection('grandTotalPaired')"><span>Grand Total</span></label>
                         <label class="flex items-center gap-1 text-sm"><input type="checkbox" id="showAbsentSickPaired" checked onchange="toggleSection('absentSickPaired')"><span>Absent/Sick/Excused</span></label>
                         <label class="flex items-center gap-1 text-sm"><input type="checkbox" id="showChartsPaired" checked onchange="toggleSection('chartsPaired')"><span>Charts</span></label>
@@ -574,6 +583,7 @@
                         </div>
                     </div>
                 </div>
+
                 </div><!-- /controlsPanel -->
 
                 <!-- ===== DASHBOARD CAPTURE AREA ===== -->
@@ -589,45 +599,17 @@
                             <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
                             <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
                           </radialGradient>
-                          <symbol id="gisPin" viewBox="0 0 24 34">
-                            <path d="M12 0C5.4 0 0 5.4 0 12c0 8.4 12 22 12 22s12-13.6 12-22C24 5.4 18.6 0 12 0z" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
-                            <circle cx="12" cy="12" r="4.5" fill="rgba(255,255,255,0.45)"/>
-                          </symbol>
                         </defs>
                         <rect width="1200" height="340" fill="url(#gisGrid)"/>
                         <rect width="1200" height="340" fill="url(#gisGlow)"/>
-                        <!-- topographic contour rings -->
                         <g fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.1">
                           <circle cx="215" cy="180" r="40"/><circle cx="215" cy="180" r="72"/><circle cx="215" cy="180" r="108"/><circle cx="215" cy="180" r="150"/>
                           <circle cx="1010" cy="120" r="34"/><circle cx="1010" cy="120" r="64"/><circle cx="1010" cy="120" r="98"/>
                         </g>
-                        <!-- utility network of connected nodes -->
                         <g stroke="rgba(255,255,255,0.32)" stroke-width="1.2" fill="none" stroke-dasharray="5 6">
-                          <path d="M90 250 L250 200 L390 262 L560 214 L720 268 L880 206 L1130 250"/>
-                          <path d="M250 200 L300 96 L470 60 L640 118 L820 74 L1010 120"/>
-                          <path d="M560 214 L640 118"/><path d="M880 206 L1010 120"/>
+                          <path d="M90 250 L250 200 L390 262 L560 214 L720 268 L880 206 L1060 250"/>
                         </g>
-                        <g fill="rgba(255,255,255,0.75)">
-                          <circle cx="90" cy="250" r="3.5"/><circle cx="250" cy="200" r="4.5"/><circle cx="390" cy="262" r="3.5"/>
-                          <circle cx="560" cy="214" r="4.5"/><circle cx="720" cy="268" r="3.5"/><circle cx="880" cy="206" r="4.5"/>
-                          <circle cx="1130" cy="250" r="3.5"/><circle cx="300" cy="96" r="3"/><circle cx="470" cy="60" r="3.5"/>
-                          <circle cx="640" cy="118" r="4"/><circle cx="820" cy="74" r="3"/><circle cx="1010" cy="120" r="4.5"/>
-                        </g>
-                        <!-- scattered location pins -->
-                        <use href="#gisPin" x="140" y="40" width="26" height="37"/>
-                        <use href="#gisPin" x="700" y="18" width="20" height="28"/>
-                        <use href="#gisPin" x="940" y="42" width="24" height="34"/>
-                        <use href="#gisPin" x="1120" y="120" width="22" height="31"/>
-                        <use href="#gisPin" x="430" y="240" width="18" height="26"/>
-                        <!-- coordinate ticks -->
-                        <g stroke="rgba(255,255,255,0.35)" stroke-width="1">
-                          <path d="M0 14 H1200"/><path d="M0 326 H1200"/>
-                          <path d="M60 8 V20 M180 8 V20 M300 8 V20 M420 8 V20 M540 8 V20 M660 8 V20 M780 8 V20 M900 8 V20 M1020 8 V20 M1140 8 V20"/>
-                          <path d="M60 320 V332 M180 320 V332 M300 320 V332 M420 320 V332 M540 320 V332 M660 320 V332 M780 320 V332 M900 320 V332 M1020 320 V332 M1140 320 V332"/>
-                        </g>
-                        <g fill="rgba(255,255,255,0.5)" font-family="'Space Mono', monospace" font-size="10">
-                          <text x="14" y="10">N 09.05&#176;</text>
-                          <text x="1104" y="10">E 007.49&#176;</text>
+                        <g font-family="'Space Mono', monospace" font-size="11" fill="rgba(255,255,255,0.4)" letter-spacing="2">
                           <text x="14" y="336">GIS &#183; AEDC</text>
                           <text x="1064" y="336">ASSET MAPPING</text>
                         </g>
@@ -635,7 +617,7 @@
 
                       <div class="gis-hero-inner">
                         <div class="gis-hero-actions no-print">
-                          <span id="accessBadge" class="hero-pill hero-pill-static">&#128065;&#65039; Public View</span>
+                          <span id="accessBadgeHero" class="hero-pill hero-pill-static">&#128065;&#65039; Public View</span>
                           <button type="button" onclick="refreshDashboard()" class="hero-pill">&#128260; Refresh</button>
                           <button type="button" id="controlsPanelToggleBtn" onclick="toggleControlsPanel()" class="hero-pill">&#9881;&#65039; Filters, Options &amp; Tools</button>
                           <button type="button" id="heroWhatsAppBtn" onclick="shareHTMLToWhatsApp()" class="hero-pill hero-pill-wa" title="Export this dashboard as HTML and send it straight to WhatsApp">
@@ -714,11 +696,11 @@
                                         </div>
                                     </div>
                                     <div style="display:flex;gap:8px;flex-wrap:wrap;" class="no-print">
-                                        <button onclick="toggleUnauthorizedPanel()" id="unauthToggleBtn" style="background:rgba(255,255,255,0.2);color:white;border:none;padding:5px 12px;border-radius:8px;font-weight:600;font-size:0.78rem;cursor:pointer;">🔼 Collapse</button>
+                                        <button onclick="toggleUnauthorizedPanel()" id="unauthToggleBtn" data-export-toggle data-toggle-target="unauthBody" style="background:rgba(255,255,255,0.2);color:white;border:none;padding:5px 12px;border-radius:8px;font-weight:600;font-size:0.78rem;cursor:pointer;">🔽 Expand</button>
                                         <button onclick="copyUnauthorizedAlert()" style="background:#fff;color:#dc2626;border:none;padding:5px 12px;border-radius:8px;font-weight:600;font-size:0.78rem;cursor:pointer;">📋 Copy Alert</button>
                                     </div>
                                 </div>
-                                <div id="unauthBody" style="padding:14px 18px;">
+                                <div id="unauthBody" style="padding:14px 18px;display:none;">
                                     <!-- WhatsApp-style alert text only (no bullet writeup) -->
                                     <div id="unauthAlertText" style="background:#fff;border:1.5px solid #fca5a5;border-radius:8px;padding:12px;margin-bottom:12px;font-size:0.82rem;line-height:1.75;color:#1f2937;white-space:pre-wrap;font-family:'DM Sans',sans-serif;"></div>
                                     <!-- Unauthorized Mapping Table -->
@@ -749,13 +731,16 @@
                         <div id="sectionFeederRemark" style="background:white;border-radius:8px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #dc2626;">
                             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
                                 <h3 style="font-size:0.9rem;font-weight:600;margin:0;display:flex;align-items:center;gap:6px;color:#dc2626;"><span>⚠️</span> Unauthorized Mapping Remark</h3>
-                                <div class="admin-only" style="display:flex;gap:6px;flex-wrap:wrap;">
-                                    <button onclick="saveFeederRemark()" style="font-size:10px;padding:3px 10px;background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:5px;cursor:pointer;font-weight:600;">💾 Save</button>
-                                    <button onclick="clearFeederRemark()" style="font-size:10px;padding:3px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;cursor:pointer;font-weight:600;">🗑️ Clear</button>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <button class="no-print" onclick="toggleFeederRemarkPanel()" id="feederRemarkToggleBtn" data-export-toggle data-toggle-target="feederRemarkBody" style="font-size:10px;padding:3px 10px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:5px;cursor:pointer;font-weight:600;">🔽 Expand</button>
+                                    <button class="admin-only" onclick="saveFeederRemark()" style="font-size:10px;padding:3px 10px;background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:5px;cursor:pointer;font-weight:600;">💾 Save</button>
+                                    <button class="admin-only" onclick="clearFeederRemark()" style="font-size:10px;padding:3px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;cursor:pointer;font-weight:600;">🗑️ Clear</button>
                                 </div>
                             </div>
-                            <div id="feederRemarkDisplay" style="display:none;white-space:pre-wrap;font-size:0.82rem;line-height:1.7;color:#1f2937;background:#fff1f2;border:1px solid #fca5a5;border-radius:6px;padding:10px;"></div>
-                            <textarea id="feederRemarkInput" class="admin-only" placeholder="Type or paste unauthorized mapping alert here (e.g. generated from the Feeder Validation panel above). This text will appear on the dashboard and can be copied for WhatsApp..." style="width:100%;min-height:80px;padding:8px;border:1.5px dashed #fca5a5;border-radius:6px;font-size:0.8rem;font-family:'DM Sans',sans-serif;resize:vertical;color:#1f2937;background:#fff1f2;" oninput="updateFeederRemarkDisplay()"></textarea>
+                            <div id="feederRemarkBody" style="display:none;">
+                                <div id="feederRemarkDisplay" style="display:none;white-space:pre-wrap;font-size:0.82rem;line-height:1.7;color:#1f2937;background:#fff1f2;border:1px solid #fca5a5;border-radius:6px;padding:10px;"></div>
+                                <textarea id="feederRemarkInput" class="admin-only" placeholder="Type or paste unauthorized mapping alert here (e.g. generated from the Feeder Validation panel above). This text will appear on the dashboard and can be copied for WhatsApp..." style="width:100%;min-height:80px;padding:8px;border:1.5px dashed #fca5a5;border-radius:6px;font-size:0.8rem;font-family:'DM Sans',sans-serif;resize:vertical;color:#1f2937;background:#fff1f2;" oninput="updateFeederRemarkDisplay()"></textarea>
+                            </div>
                         </div>
                         <!-- Absent/Sick/Excused Legacy -->
                         <div id="sectionAbsentSick" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
@@ -777,12 +762,12 @@
                     <div id="pairedModeContent" style="display: none;">
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
                             <div style="background: white; border-radius: 8px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-top: 3px solid #3b82f6;">
-                                <div style="font-weight: 700; color: #3b82f6; font-size: 0.85rem; margin-bottom: 6px; text-align: center;">🏆 AEDC/NYSC Teams</div>
+                                <div style="font-weight: 700; color: #3b82f6; font-size: 0.85rem; margin-bottom: 6px; text-align: center;">🏆 Teams with AEDC</div>
                                 <div style="display: flex; gap: 8px;"><div style="flex: 1; background: #eff6ff; padding: 6px 8px; border-radius: 6px;"><div style="font-size: 0.6rem; color: #3b82f6; font-weight: 700;">🏅 Top Performers</div><div style="font-size: 0.7rem; font-weight: 600; color: #1e40af; line-height: 1.3;" id="aedcNyscTopPerformer">-</div></div><div style="flex: 1; background: #fef2f2; padding: 6px 8px; border-radius: 6px;"><div style="font-size: 0.6rem; color: #dc2626; font-weight: 700;">📉 Least Performers</div><div style="font-size: 0.7rem; font-weight: 600; color: #991b1b; line-height: 1.3;" id="aedcNyscLeastPerformer">-</div></div></div>
                                 <div style="text-align: center; margin-top: 6px; font-size: 0.7rem; color: #6b7280;">Total: <span style="font-weight: 700; color: #3b82f6;" id="aedcNyscTotalEntries">0</span></div>
                             </div>
                             <div style="background: white; border-radius: 8px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-top: 3px solid #22c55e;">
-                                <div style="font-weight: 700; color: #22c55e; font-size: 0.85rem; margin-bottom: 6px; text-align: center;">🏆 BSS/NYSC Teams</div>
+                                <div style="font-weight: 700; color: #22c55e; font-size: 0.85rem; margin-bottom: 6px; text-align: center;">🏆 BSS / NYSC Teams</div>
                                 <div style="display: flex; gap: 8px;"><div style="flex: 1; background: #f0fdf4; padding: 6px 8px; border-radius: 6px;"><div style="font-size: 0.6rem; color: #22c55e; font-weight: 700;">🏅 Top Performers</div><div style="font-size: 0.7rem; font-weight: 600; color: #166534; line-height: 1.3;" id="bssNyscTopPerformer">-</div></div><div style="flex: 1; background: #fef2f2; padding: 6px 8px; border-radius: 6px;"><div style="font-size: 0.6rem; color: #dc2626; font-weight: 700;">📉 Least Performers</div><div style="font-size: 0.7rem; font-weight: 600; color: #991b1b; line-height: 1.3;" id="bssNyscLeastPerformer">-</div></div></div>
                                 <div style="text-align: center; margin-top: 6px; font-size: 0.7rem; color: #6b7280;">Total: <span style="font-weight: 700; color: #22c55e;" id="bssNyscTotalEntries">0</span></div>
                             </div>
@@ -798,11 +783,11 @@
                             <div class="chart-card" style="background: white; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 0;"><h4 style="font-size: 0.85rem; font-weight: 600; margin: 0 0 8px 0;">Asset Distribution</h4><div style="position: relative; height: 280px; width: 100%;"><canvas id="pairedBarChart"></canvas></div></div>
                         </div>
                         <div id="sectionAedcNyscPaired" style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <h3 style="font-size: 0.9rem; font-weight: 600; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%;"></span>AEDC / NYSC Enumerators</h3>
+                            <h3 style="font-size: 0.9rem; font-weight: 600; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%;"></span>Teams with AEDC</h3>
                             <div style="overflow-x: auto;"><table id="pairedAedcNyscTable" style="width: 100%; border-collapse: collapse; font-size: 11px;"><thead><tr style="background: #eff6ff;"><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">Team</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: left;">Full Name</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">DT/DSS</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">HT</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">Cust</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">LT</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">Issues</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">Total</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">Status</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">Feeder</th><th style="border: 1px solid #bfdbfe; padding: 6px 8px; text-align: center;">Remark</th></tr></thead><tbody id="pairedAedcNyscBody"></tbody><tfoot id="pairedAedcNyscFoot" style="background: #dbeafe; font-weight: 600;"></tfoot></table></div>
                         </div>
                         <div id="sectionBssNyscPaired" style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <h3 style="font-size: 0.9rem; font-weight: 600; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></span>BSS / NYSC Enumerators</h3>
+                            <h3 style="font-size: 0.9rem; font-weight: 600; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></span>BSS / NYSC Teams</h3>
                             <div style="overflow-x: auto;"><table id="pairedBssNyscTable" style="width: 100%; border-collapse: collapse; font-size: 11px;"><thead><tr style="background: #f0fdf4;"><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">Team</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: left;">Full Name</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">DT/DSS</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">HT</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">Cust</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">LT</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">Issues</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">Total</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">Status</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">Feeder</th><th style="border: 1px solid #bbf7d0; padding: 6px 8px; text-align: center;">Remark</th></tr></thead><tbody id="pairedBssNyscBody"></tbody><tfoot id="pairedBssNyscFoot" style="background: #dcfce7; font-weight: 600;"></tfoot></table></div>
                         </div>
                         <div id="sectionGrandTotalPaired" style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -1160,6 +1145,93 @@
         inp.title = 'Target is set by admin';
     }
 
+    const PAIR_GROUPS=['aedc','bss','nysc'];
+    const GROUP_COLORS={aedc:'#3b82f6',bss:'#22c55e',nysc:'#f97316'};
+    const teamKind=t=>(t.members||[]).some(m=>m.group==='aedc')?'aedcNysc':'bssNysc';
+
+
+    function longDate(d){
+        if(!d) return '—';
+        return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    }
+
+    function readSlashDate(sample, mode){
+        const m = sample.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+        if(!m) return null;
+        const a = parseInt(m[1]), b = parseInt(m[2]);
+        let yr = parseInt(m[3]); if(m[3].length === 2) yr = yr < 30 ? 2000+yr : 1900+yr;
+        const day = mode === 'MDY' ? b : a, month = mode === 'MDY' ? a : b;
+        const d = new Date(yr, month-1, day);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function togglePublicDateMode() {
+        const isRange = document.querySelector('input[name="publicDateMode"]:checked').value==='range';
+        document.getElementById('publicEndDate').disabled=!isRange;
+        if (!isRange) document.getElementById('publicEndDate').value=document.getElementById('publicStartDate').value;
+    }
+
+    function normalizePairings(raw) {
+        if(!raw) return [];
+        const cleanMembers=ms=>toArray(ms).filter(m=>m&&m.username&&PAIR_GROUPS.includes(m.group)).map(m=>({group:m.group,username:m.username})).slice(0,3);
+        const teams=toArray(raw.teams);
+        if(teams.length) return teams.map((t,i)=>({id:t.id||`t${i}_${Date.now()}`,name:t.name||`Team ${i+1}`,members:cleanMembers(t.members)}));
+        const out=[];
+        [['aedcNysc','aedc','A'],['bssNysc','bss','B']].forEach(([key,grp,pre])=>{
+            toArray(raw[key]).forEach((p,i)=>{
+                if(!p) return;
+                const members=[];
+                if(p.staffUsername) members.push({group:grp,username:p.staffUsername});
+                if(p.nyscUsername) members.push({group:'nysc',username:p.nyscUsername});
+                out.push({id:`legacy_${pre}${i+1}`,name:`Team ${pre}${i+1}`,members});
+            });
+        });
+        return out;
+    }
+
+    function teamsToLegacy(teams) {
+        const aedcNysc=[], bssNysc=[];
+        teams.forEach(t=>{
+            const ms=t.members||[], nysc=ms.find(m=>m.group==='nysc');
+            const aedc=ms.find(m=>m.group==='aedc'), bss=ms.find(m=>m.group==='bss');
+            if(aedc) aedcNysc.push({staffUsername:aedc.username,nyscUsername:nysc?nysc.username:''});
+            else if(bss) bssNysc.push({staffUsername:bss.username,nyscUsername:nysc?nysc.username:''});
+        });
+        return {aedcNysc,bssNysc};
+    }
+
+    function setTeamPairings(teams) {
+        teamPairings.teams=teams;
+        Object.assign(teamPairings,teamsToLegacy(teams));
+    }
+
+    function getAllPairedTeams() {
+        let teams=normalizePairings(reportResults.pairings);
+        if(!teams.length) teams=normalizePairings(teamPairings);
+        return teams;
+    }
+
+    function toggleFeederRemarkPanel() {
+        const body = document.getElementById('feederRemarkBody');
+        const btn = document.getElementById('feederRemarkToggleBtn');
+        if (!body || !btn) return;
+        const isOpen = body.style.display !== 'none';
+        body.style.display = isOpen ? 'none' : '';
+        btn.textContent = isOpen ? '🔽 Expand' : '🔼 Collapse';
+        window._feederRemarkUserToggled = true;
+    }
+
+    function autoCollapseFeederRemark() {
+        const body = document.getElementById('feederRemarkBody');
+        const btn = document.getElementById('feederRemarkToggleBtn');
+        if (!body || !btn) return;
+        if (window._feederRemarkUserToggled) return;
+        const val = (document.getElementById('feederRemarkInput')?.value || '').trim();
+        const shouldOpen = !!val;
+        body.style.display = shouldOpen ? '' : 'none';
+        btn.textContent = shouldOpen ? '🔼 Collapse' : '🔽 Expand';
+    }
+
     function initPublicView() {
         document.getElementById('mainContent').style.display='block';
         switchTab('dashboard');
@@ -1177,7 +1249,8 @@
         document.querySelectorAll('.tab-content').forEach(c=>{c.classList.add('hidden');c.style.display='none';});
         const target = document.getElementById(`content-${tabName}`);
         if(target){target.classList.remove('hidden'); target.style.display='block';}
-        if (tabName==='dashboard') { updateDashboard(); setTimeout(()=>initCharts(),100); }
+        document.body.classList.toggle('dashboard-view', tabName==='dashboard');
+        if (tabName==='dashboard') { updateDashboard(); setTimeout(()=>initCharts(),100); populateQuickDateSelect(); toggleControlsPanel(false); }
         if (tabName==='monthly') { mpLoadSavedMonths(); }
     }
 
@@ -1581,11 +1654,8 @@
         try {
             const snap=await database.ref('pairings').once('value'), data=snap.val();
             if(data){
-                teamPairings.aedcNysc=data.aedcNysc||[]; teamPairings.bssNysc=data.bssNysc||[];
-                document.getElementById('aedcNyscPairingContainer').innerHTML='';
-                document.getElementById('bssNyscPairingContainer').innerHTML='';
-                teamPairings.aedcNysc.forEach(p=>addPairingRow('aedcNysc',p.staffUsername,p.nyscUsername));
-                teamPairings.bssNysc.forEach(p=>addPairingRow('bssNysc',p.staffUsername,p.nyscUsername));
+                // legacy {aedcNysc,bssNysc} data is converted to teams[] here automatically
+                setTeamPairings(normalizePairings(data));
             }
         } catch(e){console.error(e);}
     }
@@ -2135,7 +2205,7 @@
         const tbody=document.getElementById(`dashboard${capGroup}Body`), tfoot=document.getElementById(`dashboard${capGroup}Foot`);
         const isDateRange=reportResults.isDateRange||false;
         const colors={aedc:{bg:'#eff6ff',border:'#bfdbfe'},bss:{bg:'#f0fdf4',border:'#bbf7d0'},nysc:{bg:'#fff7ed',border:'#fed7aa'}};
-        const statusColors={present:{bg:'#dcfce7',color:'#166534'},absent:{bg:'#fee2e2',color:'#991b1b'},sick:{bg:'#fef3c7',color:'#92400e'},excused:{bg:'#e0e7ff',color:'#3730a3'}};
+        const statusColors={present:{bg:'#dcfce7',color:'#166534'},absent:{bg:'#fee2e2',color:'#991b1b'},sick:{bg:'#fef3c7',color:'#92400e'},excused:{bg:'#e0e7ff',color:'#3730a3'},supervision:{bg:'#ede9fe',color:'#5b21b6'}};
 
         tbody.innerHTML=(results||[]).map((r,i)=>{
             let statusDisplay='';
@@ -2191,6 +2261,9 @@
                 const provStatusDisplay = isAdminMode
                     ? `<select class="status-select" style="background:${psc.bg};color:${psc.color};padding:2px 6px;border-radius:4px;font-size:10px;" onchange="updateProvisionalStatus('${group}','${r.id}',this.value)"><option value="present" ${r.status==='present'?'selected':''}>${r.total||0} ✓</option><option value="absent" ${r.status==='absent'?'selected':''}>Absent</option><option value="sick" ${r.status==='sick'?'selected':''}>Sick</option><option value="excused" ${r.status==='excused'?'selected':''}>Excused</option></select>`
                     : `<span style="background:${psc.bg};color:${psc.color};padding:2px 6px;border-radius:4px;font-size:10px;">${pLabel}</span>`;
+                const provRemarkCell = r.status==='excused'
+                    ? (r.excuseRemark ? `<span style="font-size:9px;color:#4f46e5;">${escapeHtml(r.excuseRemark.substring(0,35))}${r.excuseRemark.length>35?'...':''}</span>` : `<span style="font-size:9px;color:#9ca3af;">—</span>`)
+                    : `<span style="font-size:9px;color:#9ca3af;">—</span>`;
                 return `<tr data-fullname="${escapeHtml(r.fullname)}" style="background:#fef9c3;border-top:2px dashed #f59e0b;">
                     <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">🆕</td>
                     <td style="border:1px solid #fde68a;padding:4px 8px;">${nameCell}</td>
@@ -2201,8 +2274,8 @@
                     <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${r.issues||'-'}</td>
                     <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;font-weight:600;">${r.total||0}</td>
                     <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${provStatusDisplay}</td>
-                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;font-size:9px;color:#9ca3af;">—</td>
-                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;font-size:9px;color:#9ca3af;">—</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${provRemarkCell}</td>
+                    <td style="border:1px solid #fde68a;padding:4px 8px;text-align:center;">${provRemarkCell}</td>
                 </tr>`;
             }).join('');
         }
@@ -2380,16 +2453,14 @@
     }
 
     function buildTeamData(type) {
-        const pairings=type==='aedcNysc'?(reportResults.pairings?.aedcNysc||teamPairings.aedcNysc):(reportResults.pairings?.bssNysc||teamPairings.bssNysc);
-        const staffGroup=type==='aedcNysc'?'aedc':'bss', prefix=type==='aedcNysc'?'A':'B';
-        return (pairings||[]).map((pair,i)=>{
-            const staffResult=findPersonResult(staffGroup,pair.staffUsername);
-            const nyscResult=findPersonResult('nysc',pair.nyscUsername);
-            const staffName=staffResult?.fullname||usernameMappings[staffGroup].get(pair.staffUsername)||pair.staffUsername||'—';
-            const nyscName=nyscResult?.fullname||usernameMappings.nysc.get(pair.nyscUsername)||pair.nyscUsername||'—';
-            const staffData=staffResult||{dss:0,ht:0,cust:0,lt:0,issues:0,total:0,status:'present',username:pair.staffUsername,fullname:staffName,excuseRemark:'',excuseApproval:'pending',zeroRemark:''};
-            const nyscData=nyscResult||{dss:0,ht:0,cust:0,lt:0,issues:0,total:0,status:'present',username:pair.nyscUsername,fullname:nyscName,excuseRemark:'',excuseApproval:'pending',zeroRemark:''};
-            return {teamName:`Team ${prefix}${i+1}`,staff:staffData,nysc:nyscData,teamTotal:(staffData.total||0)+(nyscData.total||0)};
+        return getAllPairedTeams().filter(t=>t.members.length&&teamKind(t)===type).map((team,i)=>{
+            const members=team.members.map(m=>{
+                const r=findPersonResult(m.group,m.username);
+                const nm=r?.fullname||usernameMappings[m.group].get(m.username)||m.username||'—';
+                const person=r||{dss:0,ht:0,cust:0,lt:0,issues:0,total:0,status:'present',username:m.username,fullname:nm,excuseRemark:'',excuseApproval:'pending',zeroRemark:''};
+                return {group:m.group,person};
+            });
+            return {teamName:team.name||`Team ${i+1}`,members,teamTotal:members.reduce((s,m)=>s+(m.person.total||0),0)};
         });
     }
 
@@ -2399,10 +2470,10 @@
         let presentCount=0,absentCount=0,sickCount=0,excusedCount=0;
         const absentList=[],sickList=[],excusedList=[],zeroPresentList=[];
 
-        const processTeams=(teams,label)=>{
+        const processTeams=(teams)=>{ let label='';
             teams.forEach(team=>{
-                [team.staff,team.nysc].forEach((p,pi)=>{
-                    const grp = pi===0 ? (label.startsWith('AEDC')?'aedc':'bss') : 'nysc';
+                team.members.forEach(({group:grp,person:p})=>{
+                    label=team.members.map(m=>m.group.toUpperCase()).join('+');
                     const rIdx = (reportResults[grp]?.results||[]).findIndex(r=>r.username===p.username);
                     if(p.status==='present'){presentCount++;if(p.total===0)zeroPresentList.push({name:`${p.fullname} (${label} - ${team.teamName})`,remark:p.zeroRemark||'',group:grp,index:rIdx});}
                     else if(p.status==='absent'){absentCount++;absentList.push({name:`${p.fullname} (${label} - ${team.teamName})`});}
@@ -2411,8 +2482,8 @@
                 });
             });
         };
-        processTeams(aedcNyscTeams,'AEDC/NYSC');
-        processTeams(bssNyscTeams,'BSS/NYSC');
+        processTeams(aedcNyscTeams);
+        processTeams(bssNyscTeams);
 
         // Not-yet-onboarded enumerators aren't part of a team pairing, so they
         // don't run through processTeams — but their admin-set status should
@@ -2492,8 +2563,8 @@
         const totalEntries=teams.reduce((s,t)=>s+t.teamTotal,0);
         if(sorted.length>0){
             const top=sorted[0], least=sorted[sorted.length-1];
-            document.getElementById(`${type}TopPerformer`).innerHTML=`${top.staff.fullname} & ${top.nysc.fullname}<br><span style="font-size:0.7rem;opacity:0.8;">${top.teamName} (${top.teamTotal})</span>`;
-            document.getElementById(`${type}LeastPerformer`).innerHTML=`${least.staff.fullname} & ${least.nysc.fullname}<br><span style="font-size:0.7rem;opacity:0.8;">${least.teamName} (${least.teamTotal})</span>`;
+            document.getElementById(`${type}TopPerformer`).innerHTML=`${top.members.map(m=>m.person.fullname).join(' & ')}<br><span style="font-size:0.7rem;opacity:0.8;">${top.teamName} (${top.teamTotal})</span>`;
+            document.getElementById(`${type}LeastPerformer`).innerHTML=`${least.members.map(m=>m.person.fullname).join(' & ')}<br><span style="font-size:0.7rem;opacity:0.8;">${least.teamName} (${least.teamTotal})</span>`;
         } else {
             document.getElementById(`${type}TopPerformer`).textContent='-';
             document.getElementById(`${type}LeastPerformer`).textContent='-';
@@ -2505,17 +2576,16 @@
         const capType=type==='aedcNysc'?'AedcNysc':'BssNysc';
         const tbody=document.getElementById(`paired${capType}Body`), tfoot=document.getElementById(`paired${capType}Foot`);
         const borderColor=type==='aedcNysc'?'#bfdbfe':'#bbf7d0', bgColor1=type==='aedcNysc'?'#eff6ff':'#f0fdf4';
-        const statusColors={present:{bg:'#dcfce7',color:'#166534'},absent:{bg:'#fee2e2',color:'#991b1b'},sick:{bg:'#fef3c7',color:'#92400e'},excused:{bg:'#e0e7ff',color:'#3730a3'}};
+        const statusColors={present:{bg:'#dcfce7',color:'#166534'},absent:{bg:'#fee2e2',color:'#991b1b'},sick:{bg:'#fef3c7',color:'#92400e'},excused:{bg:'#e0e7ff',color:'#3730a3'},supervision:{bg:'#ede9fe',color:'#5b21b6'}};
         let totals={dss:0,ht:0,cust:0,lt:0,issues:0,total:0}, html='';
 
         teams.forEach((team,ti)=>{
             const isTeamA=type==='aedcNysc';
             const teamCellBg=isTeamA?'linear-gradient(135deg,#3b82f6,#1d4ed8)':'linear-gradient(135deg,#22c55e,#16a34a)';
-            [team.staff,team.nysc].forEach((person,pi)=>{
+            team.members.forEach(({group:grp,person},pi)=>{
                 const sc=statusColors[person.status]||statusColors.present;
                 const statusLabel=person.status==='present'?`${person.total} ✓`:person.status.charAt(0).toUpperCase()+person.status.slice(1);
-                const grp=pi===0?(type==='aedcNysc'?'aedc':'bss'):'nysc';
-                const resultIdx=(reportResults[grp]?.results||[]).findIndex(r=>r.username===person.username);
+                                const resultIdx=(reportResults[grp]?.results||[]).findIndex(r=>r.username===person.username);
                 let statusDisplay='';
                 if(isAdminMode&&resultIdx>=0){
                     statusDisplay=`<select class="status-select" style="background:${sc.bg};color:${sc.color};padding:2px 6px;border-radius:4px;font-size:10px;" onchange="updateDashboardStatus('${grp}',${resultIdx},this.value)"><option value="present" ${person.status==='present'?'selected':''}>${person.total} ✓</option><option value="absent" ${person.status==='absent'?'selected':''}>Absent</option><option value="sick" ${person.status==='sick'?'selected':''}>Sick</option><option value="excused" ${person.status==='excused'?'selected':''}>Excused</option></select>`;
@@ -2523,8 +2593,8 @@
                     statusDisplay=`<span style="background:${sc.bg};color:${sc.color};padding:2px 6px;border-radius:4px;font-size:10px;">${statusLabel}</span>`;
                 }
                 const rowBg=ti%2===0?bgColor1:'#fff';
-                const teamCell=pi===0?`<td rowspan="2" style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;vertical-align:middle;background:${teamCellBg};color:#fff;font-weight:700;font-size:12px;text-shadow:0 1px 2px rgba(0,0,0,0.2);">${team.teamName}</td>`:'';
-                const roleTag=pi===0?(type==='aedcNysc'?'<span style="background:#3b82f6;color:white;padding:1px 4px;border-radius:3px;font-size:8px;margin-left:4px;">AEDC</span>':'<span style="background:#22c55e;color:white;padding:1px 4px;border-radius:3px;font-size:8px;margin-left:4px;">BSS</span>'):'<span style="background:#f97316;color:white;padding:1px 4px;border-radius:3px;font-size:8px;margin-left:4px;">NYSC</span>';
+                const teamCell=pi===0?`<td rowspan="${team.members.length}" style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;vertical-align:middle;background:${teamCellBg};color:#fff;font-weight:700;font-size:12px;text-shadow:0 1px 2px rgba(0,0,0,0.2);">${team.teamName}</td>`:'';
+                const roleTag=`<span style="background:${GROUP_COLORS[grp]};color:white;padding:1px 4px;border-radius:3px;font-size:8px;margin-left:4px;">${grp.toUpperCase()}</span>`;
                 // Editable cells
                 const dssCell = makeEditableCell(person.dss,grp,resultIdx,'dss',borderColor);
                 const htCell = makeEditableCell(person.ht,grp,resultIdx,'ht',borderColor);
@@ -2547,14 +2617,14 @@
         });
 
         tbody.innerHTML=html;
-        tfoot.innerHTML=`<tr><td style="border:1px solid ${borderColor};padding:6px 8px;" colspan="2">TOTAL (${teams.length} teams / ${teams.length*2} members)</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.dss}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.ht}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.cust}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.lt}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.issues}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.total}</td><td style="border:1px solid ${borderColor};padding:6px 8px;"></td><td style="border:1px solid ${borderColor};padding:6px 8px;"></td><td style="border:1px solid ${borderColor};padding:6px 8px;"></td></tr>`;
+        tfoot.innerHTML=`<tr><td style="border:1px solid ${borderColor};padding:6px 8px;" colspan="2">TOTAL (${teams.length} teams / ${teams.reduce((n,t)=>n+t.members.length,0)} members)</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.dss}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.ht}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.cust}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.lt}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.issues}</td><td style="border:1px solid ${borderColor};padding:6px 8px;text-align:center;">${totals.total}</td><td style="border:1px solid ${borderColor};padding:6px 8px;"></td><td style="border:1px solid ${borderColor};padding:6px 8px;"></td><td style="border:1px solid ${borderColor};padding:6px 8px;"></td></tr>`;
     }
 
     function updatePairedGrandTotal(aedcNyscTeams, bssNyscTeams) {
-        const calcTotals=teams=>{const t={dss:0,ht:0,cust:0,lt:0,issues:0,total:0};teams.forEach(team=>{[team.staff,team.nysc].forEach(p=>{t.dss+=p.dss||0;t.ht+=p.ht||0;t.cust+=p.cust||0;t.lt+=p.lt||0;t.issues+=p.issues||0;t.total+=p.total||0;});});return t;};
+        const calcTotals=teams=>{const t={dss:0,ht:0,cust:0,lt:0,issues:0,total:0};teams.forEach(team=>{team.members.forEach(({person:p})=>{t.dss+=p.dss||0;t.ht+=p.ht||0;t.cust+=p.cust||0;t.lt+=p.lt||0;t.issues+=p.issues||0;t.total+=p.total||0;});});return t;};
         const aN=calcTotals(aedcNyscTeams), bN=calcTotals(bssNyscTeams);
         const gt={dss:aN.dss+bN.dss,ht:aN.ht+bN.ht,cust:aN.cust+bN.cust,lt:aN.lt+bN.lt,issues:aN.issues+bN.issues,total:aN.total+bN.total};
-        const groups=[{name:'AEDC/NYSC Enumerators',data:aN,color:'#3b82f6'},{name:'BSS/NYSC Enumerators',data:bN,color:'#22c55e'}];
+        const groups=[{name:'AEDC Teams',data:aN,color:'#3b82f6'},{name:'BSS / NYSC Teams',data:bN,color:'#22c55e'}];
         document.getElementById('pairedGrandTotalBody').innerHTML=groups.map((g,i)=>`<tr style="background:${i%2===0?'#faf5ff':'#fff'};"><td style="border:1px solid #e9d5ff;padding:6px 8px;"><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;background:${g.color};border-radius:50%;"></span>${g.name}</span></td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${g.data.dss}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${g.data.ht}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${g.data.cust}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${g.data.lt}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${g.data.issues}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;font-weight:600;">${g.data.total}</td></tr>`).join('');
         document.getElementById('pairedGrandTotalFoot').innerHTML=`<tr><td style="border:1px solid #e9d5ff;padding:6px 8px;">GRAND TOTAL</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${gt.dss}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${gt.ht}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${gt.cust}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${gt.lt}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${gt.issues}</td><td style="border:1px solid #e9d5ff;padding:6px 8px;text-align:center;">${gt.total}</td></tr>`;
     }
@@ -2681,17 +2751,17 @@
         const pieCtx=document.getElementById('pairedPieChart'), barCtx=document.getElementById('pairedBarChart');
         if(!pieCtx||!barCtx)return;
         if(pairedPieChart)pairedPieChart.destroy(); if(pairedBarChart)pairedBarChart.destroy();
-        pairedPieChart=new Chart(pieCtx,{type:'doughnut',data:{labels:['AEDC/NYSC (0)','BSS/NYSC (0)'],datasets:[{...donutDataset(['blue','green']),data:[0,0]}]},options:donutOptions()});
-        pairedBarChart=new Chart(barCtx,{type:'bar',data:{labels:['DT/DSS','HT Pole','Customer','LT Pole','Issues'],datasets:[{...barDataset(['blue','orange','yellow','green','red']),data:[0,0,0,0,0]}]},options:barOptions()});
+        pairedPieChart=new Chart(pieCtx,{type:'doughnut',data:{labels:['AEDC Teams (0)','BSS/NYSC Teams (0)'],datasets:[{...donutDataset(['blue','green']),data:[0,0]}]},options:donutOptions()});
+        pairedBarChart=new Chart(barCtx,{type:'bar',data:{labels:['DT/DSS','HT Pole','Customer','LT Pole','Issues'],datasets:[{label:'Total',data:[0,0,0,0,0],backgroundColor:['#3b82f6','#f97316','#eab308','#22c55e','#ef4444']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
         updatePairedCharts(buildTeamData('aedcNysc'),buildTeamData('bssNysc'));
     }
 
     function updatePairedCharts(aedcNyscTeams, bssNyscTeams) {
         if(!pairedPieChart||!pairedBarChart)return;
         const aTotal=aedcNyscTeams.reduce((s,t)=>s+t.teamTotal,0), bTotal=bssNyscTeams.reduce((s,t)=>s+t.teamTotal,0);
-        pairedPieChart.data.labels=[`AEDC/NYSC (${aTotal})`,`BSS/NYSC (${bTotal})`]; pairedPieChart.data.datasets[0].data=[aTotal,bTotal]; pairedPieChart.update();
+        pairedPieChart.data.labels=[`AEDC Teams (${aTotal})`,`BSS/NYSC Teams (${bTotal})`]; pairedPieChart.data.datasets[0].data=[aTotal,bTotal]; pairedPieChart.update();
         const allTeams=[...aedcNyscTeams,...bssNyscTeams], t={dss:0,ht:0,cust:0,lt:0,issues:0};
-        allTeams.forEach(team=>{[team.staff,team.nysc].forEach(p=>{t.dss+=p.dss||0;t.ht+=p.ht||0;t.cust+=p.cust||0;t.lt+=p.lt||0;t.issues+=p.issues||0;});});
+        allTeams.forEach(team=>{team.members.forEach(({person:p})=>{t.dss+=p.dss||0;t.ht+=p.ht||0;t.cust+=p.cust||0;t.lt+=p.lt||0;t.issues+=p.issues||0;});});
         pairedBarChart.data.datasets[0].data=[t.dss,t.ht,t.cust,t.lt,t.issues]; pairedBarChart.update();
     }
 
@@ -2705,11 +2775,11 @@
         const hasData = (reportResults.aedc.results||[]).length
                       || (reportResults.bss.results||[]).length
                       || (reportResults.nysc.results||[]).length;
-        if (!hasData) { showStatus('No dashboard data to export. Load a dashboard first.', 'error'); return; }
+        if (!hasData) { showStatus('No dashboard data to export. Load a dashboard first.', 'error'); return null; }
 
         // ── 1. Clone the dashboardCapture div ──────────────────────────────
         const source = document.getElementById('dashboardCapture');
-        if (!source) { showStatus('Dashboard capture area not found.', 'error'); return; }
+        if (!source) { showStatus('Dashboard capture area not found.', 'error'); return null; }
         const clone = source.cloneNode(true);
 
         // ── 2. Remove the two chart sections (Group Distribution & Asset Distribution) ──
@@ -2729,9 +2799,9 @@
         // Convert status dropdowns → plain styled badge (public view)
         clone.querySelectorAll('select.status-select').forEach(sel => {
             const val = sel.value || 'present';
-            const labels = { present: 'Present', absent: 'Absent', sick: 'Sick', excused: 'Excused' };
-            const bgs    = { present: '#dcfce7', absent: '#fee2e2', sick: '#fef3c7', excused: '#e0e7ff' };
-            const colors = { present: '#166534', absent: '#991b1b', sick: '#92400e', excused: '#3730a3' };
+            const labels = { present: 'Present', absent: 'Absent', sick: 'Sick', excused: 'Excused', supervision: 'ON SUPERVISION' };
+            const bgs    = { present: '#dcfce7', absent: '#fee2e2', sick: '#fef3c7', excused: '#e0e7ff', supervision: '#ede9fe' };
+            const colors = { present: '#166534', absent: '#991b1b', sick: '#92400e', excused: '#3730a3', supervision: '#5b21b6' };
             // Find total from closest td sibling that has a bold number
             const totalEl = sel.closest('tr')?.querySelector('td[style*="font-weight"]');
             const total = totalEl ? totalEl.textContent.trim() : '';
@@ -2769,8 +2839,18 @@
             if (wrapper) wrapper.replaceWith(span); else inp.replaceWith(span);
         });
 
-        // Remove any remaining buttons inside the cloned content
-        clone.querySelectorAll('button').forEach(b => b.remove());
+        // Remove any remaining buttons inside the cloned content — except the
+        // collapse/expand toggles, which stay clickable in the shared HTML so
+        // the reader can open those sections while they start minimized.
+        clone.querySelectorAll('button').forEach(b => {
+            if (b.hasAttribute('data-export-toggle')) {
+                b.removeAttribute('onclick');
+                b.classList.remove('no-print', 'admin-only');
+                b.classList.add('export-toggle');
+                return;
+            }
+            b.remove();
+        });
 
         // ── 4. Build the full self-contained HTML document ─────────────────
         const dateKey = reportResults.dateKey || '';
@@ -2850,6 +2930,10 @@
             .gis-hero-sub:empty { display: none; }
             /* Interactive hero controls never appear in the export */
             .gis-hero-actions, .hero-datebar, .hero-pill, .hero-select, .hero-arrow { display: none !important; }
+            /* Collapse/expand toggles stay usable in the shared HTML */
+            button.export-toggle { display:inline-block !important; cursor:pointer;
+                font-size:10px; padding:3px 10px; border-radius:5px; font-weight:600;
+                background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; }
             /* Responsive */
             @media(max-width:768px){ body{ padding:10px; } table{ font-size:10px; } }
         `;
@@ -2871,6 +2955,17 @@
         📊 GIS Enumeration &amp; Asset Mapping Performance Dashboard &nbsp;·&nbsp; Exported ${new Date().toLocaleString()}
       </div>
     </div>
+  <script>
+    document.querySelectorAll('button[data-toggle-target]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var body = document.getElementById(btn.getAttribute('data-toggle-target'));
+        if (!body) return;
+        var open = body.style.display !== 'none';
+        body.style.display = open ? 'none' : '';
+        btn.textContent = open ? '\u{1F53D} Expand' : '\u{1F53C} Collapse';
+      });
+    });
+  <\/script>
 </body>
 </html>`;
 
@@ -2881,6 +2976,8 @@
         const built = buildDashboardExportHTML();
         if (!built) return;
         const { htmlContent, filename } = built;
+
+        // ── Trigger download ─────────────────────────────────────────────
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
         const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
@@ -2902,19 +2999,27 @@
 
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
         const file = new File([blob], filename, { type: 'text/html' });
-        const shareText = pageTitleDisplay || 'GIS Enumeration & Asset Mapping Performance Dashboard';
+        let shareText = pageTitleDisplay || 'GIS Enumeration & Asset Mapping Performance Dashboard';
+        try { if (typeof buildWhatsAppNoteText === 'function') shareText += '\n\n' + buildWhatsAppNoteText(); } catch(e){ console.error(e); }
 
+        // Preferred path: native share sheet with the file attached — on phones
+        // the user picks WhatsApp and the file goes straight into the chat.
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
                 await navigator.share({ files: [file], title: filename, text: shareText });
                 showStatus(`✅ Shared ${filename}`, 'success');
                 return;
             } catch (err) {
-                if (err && err.name === 'AbortError') return;
+                if (err && err.name === 'AbortError') return; // user cancelled the share sheet
                 console.error('Web Share failed:', err);
+                // fall through to the fallback below
             }
         }
 
+        // Fallback for browsers without file-sharing support: download the file
+        // (same name as Export HTML) then open WhatsApp so the user can attach
+        // it manually — a browser page can't auto-attach a file to WhatsApp
+        // without the native share sheet used above.
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url; a.download = filename;
@@ -2924,6 +3029,10 @@
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         const noteText = `${shareText}\n\nFile "${filename}" was just downloaded — please attach it here from your Downloads folder.`;
         const params = new URLSearchParams({ text: noteText });
+        // wa.me auto-routes to the WhatsApp app on phones; on desktop it's more
+        // reliable to go straight to WhatsApp Web rather than the app.whatsapp.com
+        // redirector, which can mangle the query string when the desktop app
+        // intercepts it.
         const waUrl = isMobile
             ? `https://wa.me/?${params.toString()}`
             : `https://web.whatsapp.com/send?${params.toString()}`;
@@ -3161,6 +3270,7 @@
         const container=document.getElementById('savedDatesList');
         const dates=Object.keys(savedDashboards).sort().reverse();
         if(!dates.length){container.innerHTML='<span class="text-sm text-gray-500">No saved dashboards yet</span>';return;}
+        populateQuickDateSelect();
 
         // Build year → month → dates structure
         const years={};
@@ -3203,7 +3313,10 @@
                 <div id="year-body-${yr}" style="display:none;">${monthHtml}</div>
             </div>`;
         }).join('');
-        populateQuickDateSelect();
+
+        // Dropdown starts closed — user clicks a year to expand it manually.
+        // (Loading the last saved dashboard on startup is handled separately
+        // by loadLatestDashboard() and does not depend on this list being open.)
     }
 
     function toggleYear(yr){
@@ -3227,6 +3340,7 @@
         const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : panel.classList.contains('hidden');
         panel.classList.toggle('hidden', !shouldOpen);
         if (btn) btn.innerHTML = shouldOpen ? '🔼 Hide Filters, Options &amp; Tools' : '🔽 Filters, Options &amp; Tools';
+        if (shouldOpen) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function populateQuickDateSelect() {
@@ -3244,7 +3358,7 @@
 
     function quickJumpToDate(dateKey) {
         if (!dateKey) return;
-        loadDashboardByDate(dateKey).then(() => toggleControlsPanel(false));
+        Promise.resolve(loadDashboardByDate(dateKey)).then(() => toggleControlsPanel(false));
     }
 
     function quickShiftDate(direction) {
@@ -3307,9 +3421,11 @@
             unauthSavedViolations = toArray(reportResults.unauthViolations || []);
             unauthDismissed = toArray(reportResults.unauthDismissed || []);
             unauthManualEntries = toArray(reportResults.unauthManualEntries || []);
+            // Restore the saved call-back notice table for this date
+            cbfDismissed = toArray(raw.cbfDismissed || []);
+            try { setTimeout(()=>buildCallbackFormPanel(), 250); } catch(e){ console.error(e); }
             if (reportResults.pairings) {
-                teamPairings.aedcNysc = toArray(reportResults.pairings.aedcNysc);
-                teamPairings.bssNysc  = toArray(reportResults.pairings.bssNysc);
+                setTeamPairings(normalizePairings(reportResults.pairings));
             }
 
             currentViewMode = 'legacy';
@@ -3347,8 +3463,87 @@
 
     async function loadPublicDashboard() {
         const startDate=document.getElementById('publicStartDate').value;
+        const isRange=document.querySelector('input[name="publicDateMode"]:checked').value==='range';
+        let endDate=isRange?document.getElementById('publicEndDate').value:startDate;
         if(!startDate){showStatus('Please select a date','error');return;}
-        await loadDashboardByDate(startDate);
+        if(isRange&&startDate!==endDate){
+            const aggregated={aedc:{results:[],totals:{dss:0,ht:0,cust:0,lt:0,issues:0,total:0}},bss:{results:[],totals:{dss:0,ht:0,cust:0,lt:0,issues:0,total:0}},nysc:{results:[],totals:{dss:0,ht:0,cust:0,lt:0,issues:0,total:0}},dateRange:`(${startDate} to ${endDate})`,formattedDate:`${formatDateFull(startDate)} to ${formatDateFull(endDate)}`,dateKey:`${startDate}_to_${endDate}`,isDateRange:true};
+            const personData={aedc:{},bss:{},nysc:{}};
+            const personProvData={aedc:{},bss:{},nysc:{}};
+            const start=new Date(startDate),end=new Date(endDate);
+            let loaded=0,totalDays=0;
+            let latestPairings=null;
+            showStatus('Loading date range…','info');
+            for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+                totalDays++;
+                const dk=d.toISOString().split('T')[0];
+                try {
+                    const snap=await database.ref(`dashboards/${dk}`).once('value');
+                    const dayRaw=snap.val();
+                    if(!dayRaw) continue;
+                    loaded++;
+                    if(dayRaw.pairings)latestPairings=dayRaw.pairings;
+                    // merge each day's saved call-back notice rows into the range view
+                    if(dayRaw.cbfSnapshot){
+                        if(!aggregated.cbfSnapshot)aggregated.cbfSnapshot={rows:[],noAccessTotal:0,ok:0};
+                        aggregated.cbfSnapshot.rows=aggregated.cbfSnapshot.rows.concat(toArray(dayRaw.cbfSnapshot.rows||[]));
+                        aggregated.cbfSnapshot.noAccessTotal+=dayRaw.cbfSnapshot.noAccessTotal||0;
+                        aggregated.cbfSnapshot.ok+=dayRaw.cbfSnapshot.ok||0;
+                    }
+                    ['aedc','bss','nysc'].forEach(g=>{
+                        const saved=dayRaw[g];
+                        if(saved?.totals)Object.keys(aggregated[g].totals).forEach(k=>aggregated[g].totals[k]+=saved.totals[k]||0);
+                        const savedResults=toArray(saved?.results);
+                        savedResults.forEach(r=>{
+                            const key=r.username||r.fullname;
+                            if(!personData[g][key])personData[g][key]={username:r.username,fullname:r.fullname,dss:0,ht:0,cust:0,lt:0,issues:0,total:0,statusCounts:{present:0,absent:0,sick:0,excused:0},excuseRemark:r.excuseRemark||'',excuseApproval:r.excuseApproval||'pending',zeroRemark:r.zeroRemark||''};
+                            personData[g][key].dss+=r.dss||0;personData[g][key].ht+=r.ht||0;personData[g][key].cust+=r.cust||0;personData[g][key].lt+=r.lt||0;personData[g][key].issues+=r.issues||0;personData[g][key].total+=r.total||0;
+                            personData[g][key].statusCounts[r.status||'present']++;
+                            const dayOfWeek=new Date(dk).getDay();
+                            const isWeekend=(dayOfWeek===0||dayOfWeek===6);
+                            const status=r.status||'present';
+                            if(!isWeekend){
+                                if(!personData[g][key].weekdayStatusCounts)personData[g][key].weekdayStatusCounts={present:0,absent:0,sick:0,excused:0};
+                                personData[g][key].weekdayStatusCounts[status]++;
+                            } else {
+                                if(status==='present'&&(r.total||0)>0){
+                                    if(!personData[g][key].weekdayStatusCounts)personData[g][key].weekdayStatusCounts={present:0,absent:0,sick:0,excused:0};
+                                    personData[g][key].weekdayStatusCounts.present++;
+                                }
+                            }
+                        });
+                        const savedProv=toArray(dayRaw[g]?.provisionalResults);
+                        savedProv.forEach(r=>{
+                            const key=r.id||r.username||r.fullname;
+                            if(!personProvData[g][key])personProvData[g][key]={id:r.id,username:r.username,isProvisional:true,fullname:r.fullname,dss:0,ht:0,cust:0,lt:0,issues:0,total:0,dayLabels:[],statusCounts:{present:0,absent:0,sick:0,excused:0},excuseRemark:r.excuseRemark||'',excuseApproval:r.excuseApproval||'pending'};
+                            personProvData[g][key].dss+=r.dss||0;personProvData[g][key].ht+=r.ht||0;personProvData[g][key].cust+=r.cust||0;personProvData[g][key].lt+=r.lt||0;personProvData[g][key].issues+=r.issues||0;personProvData[g][key].total+=r.total||0;
+                            personProvData[g][key].dayLabels.push(...(r.dayLabels||[]));
+                            personProvData[g][key].statusCounts[r.status||'present']++;
+                            if(r.status==='excused'&&r.excuseRemark){personProvData[g][key].excuseRemark=r.excuseRemark;personProvData[g][key].excuseApproval=r.excuseApproval||'pending';}
+                        });
+                    });
+                } catch(e){ console.warn(`Could not load ${dk}:`,e); }
+            }
+            ['aedc','bss','nysc'].forEach(g=>{aggregated[g].results=Object.values(personData[g]).map(p=>({...p,status:'present',statusBreakdown:p.statusCounts,statusBreakdownWeekdayOnly:p.weekdayStatusCounts||p.statusCounts}));aggregated[g].results.sort((a,b)=>b.total-a.total);
+                aggregated[g].provisionalResults=Object.values(personProvData[g]).map(p=>{
+                    const uniqueTexts=[...new Set(p.dayLabels.map(d=>d.text))];
+                    let summaryLabel;
+                    if(p.dayLabels.length===0) summaryLabel='No work-plan entries yet';
+                    else if(uniqueTexts.length===1) summaryLabel = uniqueTexts[0]==='manual entry' ? '✍️ manually entered' : `🤝 worked with ${uniqueTexts[0]}`;
+                    else summaryLabel = `🔀 varies day-to-day (${uniqueTexts.length} assignments this period — see Work Plan)`;
+                    // Represent the range with whichever status was most common across the days loaded
+                    const sc = p.statusCounts || {present:0,absent:0,sick:0,excused:0};
+                    const overallStatus = Object.keys(sc).reduce((a,b)=>sc[b]>sc[a]?b:a,'present');
+                    return {...p, status:overallStatus, statusBreakdown:sc, summaryLabel};
+                });
+                aggregated[g].provisionalResults.sort((a,b)=>b.total-a.total);
+            });
+            if(latestPairings)aggregated.pairings=latestPairings;
+            if(loaded>0){reportResults=aggregated;currentViewMode='legacy';updateDashboard();setTimeout(()=>initCharts(),100);setTimeout(()=>{try{buildCallbackFormPanel();}catch(e){console.error(e);}},250);showStatus(`Loaded ${loaded} of ${totalDays} days`,'success');}
+            else showStatus('No saved dashboards in range','warning');
+        } else {
+            await loadDashboardByDate(startDate);
+        }
     }
 
     // ============================================
@@ -3843,6 +4038,36 @@
                     flag
                 });
             });
+
+            // Also list new/not-yet-onboarded enumerators for this group, clearly flagged.
+            // Their feeder was already resolved day-by-day in generateReport() (since a
+            // "shadow" assignment can point to a different enumerator on different days),
+            // so we just surface that precomputed result here rather than recalculating.
+            (reportResults[group].provisionalResults||[]).forEach(r => {
+                const liveTopFeeder = r.savedFeeder || null;
+                const allFeeders = (r.allFeeders||[]).map(f => ({feeder:f, count:1}));
+
+                const rawOverride = fvSessionOverrides[r.username] || null;
+                const override = (rawOverride && rawOverride !== liveTopFeeder) ? rawOverride : null;
+                const savedFeeder = r.savedFeeder || null;
+
+                let flag = 'nodata';
+                if (override) flag = 'overridden';
+                else if (liveTopFeeder) flag = 'live';
+
+                fvRows.push({
+                    username: r.username,
+                    fullname: `🆕 ${r.fullname}`,
+                    group,
+                    total: r.total,
+                    liveTopFeeder,
+                    allFeeders,
+                    override,
+                    savedFeeder,
+                    flag,
+                    isProvisional: true
+                });
+            });
         });
 
         renderFeederValidationTable();
@@ -3925,7 +4150,7 @@
                 <td class="px-2 py-1.5 border-b border-amber-100 text-xs text-gray-500">${i+1}</td>
                 <td class="px-2 py-1.5 border-b border-amber-100"><span class="font-mono text-xs font-semibold text-gray-700">${escapeHtml(r.username)}</span></td>
                 <td class="px-2 py-1.5 border-b border-amber-100 text-sm font-medium text-gray-800">${escapeHtml(r.fullname)}</td>
-                <td class="px-2 py-1.5 border-b border-amber-100 text-center">${groupBadge[r.group]||r.group}</td>
+                <td class="px-2 py-1.5 border-b border-amber-100 text-center">${groupBadge[r.group]||r.group}${r.isProvisional?' <span style="background:#fef9c3;color:#92400e;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700;">NEW</span>':''}</td>
                 <td class="px-2 py-1.5 border-b border-amber-100 text-center font-bold text-sm ${r.total>0?'text-blue-700':'text-gray-400'}">${r.total||'-'}</td>
                 <td class="px-2 py-1.5 border-b border-amber-100">
                     ${r.liveTopFeeder
@@ -4259,6 +4484,20 @@
         // Always show so admin can add manual entries
         panel.style.display = (violations.length > 0 || isAdminMode) ? 'block' : 'none';
 
+        // Auto-minimise: when nothing unauthorized was captured the panel stays
+        // collapsed (admin/public alike) so the daily report shares clean. It
+        // only auto-expands when there are real violations, and any manual
+        // toggle by the viewer is respected from then on.
+        (function autoCollapseUnauth() {
+            const body = document.getElementById('unauthBody');
+            const btn = document.getElementById('unauthToggleBtn');
+            if (!body || !btn) return;
+            if (window._unauthUserToggled) return;
+            const shouldOpen = violations.length > 0;
+            body.style.display = shouldOpen ? '' : 'none';
+            btn.textContent = shouldOpen ? '🔼 Collapse' : '🔽 Expand';
+        })();
+
         const uniqueNames = [...new Set(violations.map(v => v.fullname))];
         let alertText = '';
         if (uniqueNames.length > 0) {
@@ -4520,6 +4759,7 @@
         const isOpen = body.style.display !== 'none';
         body.style.display = isOpen ? 'none' : '';
         btn.textContent = isOpen ? '🔽 Expand' : '🔼 Collapse';
+        window._unauthUserToggled = true;
     }
 
     function copyUnauthorizedAlert() {
@@ -4544,6 +4784,7 @@
         const val = input.value.trim();
         display.textContent = val;
         display.style.display = val ? 'block' : 'none';
+        autoCollapseFeederRemark();
     }
 
     function saveFeederRemark() {
@@ -5707,13 +5948,16 @@
      NOTE: the Weekly Target Report is intentionally EXCLUDED from this Enumerator view. -->
 <script>
 /* Enumerator view has no weekly-report modal, so the daily target is fixed. */
-function enumerateDateKeys(startStr, endStr) {
-    const out = []; if (!startStr) return out;
-    let d = new Date(startStr + 'T00:00:00');
-    const end = new Date((endStr || startStr) + 'T00:00:00');
-    while (d <= end) { out.push(d.toISOString().substring(0, 10)); d.setDate(d.getDate() + 1); }
-    return out;
-}
+    function enumerateDateKeys(startDateStr, endDateStr) {
+        const keys=[];
+        let cur=new Date(startDateStr+'T00:00:00');
+        const end=new Date((endDateStr||startDateStr)+'T00:00:00');
+        while(cur<=end){
+            keys.push(toLocalDateKey(cur) || cur.toISOString().substring(0,10));
+            cur.setDate(cur.getDate()+1);
+        }
+        return keys;
+    }
 /* ============================================================
    PERFORMANCE TARGET MODULE
    Management target: 600 points / month, ≈30 captures / working day.
@@ -5841,10 +6085,19 @@ function renderTargetKpis() {
     const isDateRange = reportResults.isDateRange || false;
     const days = isDateRange ? perfExpectedDays() : 1;
     const target = perfDailyTarget() * days;
-    let met = 0, below = 0, working = 0, sum = 0, best = null, worst = null;
+    let met = 0, below = 0, working = 0, sum = 0, best = null, worst = null, excluded = 0;
+    // Staff on special duty (supervision, office task, etc.) are flagged by a
+    // manually typed custom Status and/or custom Remark. Their low/zero capture
+    // count is expected, so they must never be counted as "Below target" nor
+    // picked as "Lowest today".
+    const onSpecialDuty = r => {
+        const ov = perfOv(r.username) || {};
+        return !!((ov.customStatus || '').trim() || (ov.customRemark || '').trim());
+    };
     ['aedc', 'bss', 'nysc'].forEach(g => {
         ((reportResults[g] || {}).results || []).forEach(r => {
             if (r.status && r.status !== 'present') return;
+            if (onSpecialDuty(r)) { excluded++; return; }
             working++; sum += (r.total || 0);
             if ((r.total || 0) >= target) met++; else below++;
             if (!best || (r.total || 0) > best.total) best = r;
@@ -5860,7 +6113,7 @@ function renderTargetKpis() {
     wrap.innerHTML =
         card('Target / staff', target, days > 1 ? `${perfDailyTarget()} × ${days} working days` : `${perfDailyTarget()} captures for the day`, '#2563eb') +
         card('Met target', met, `${compliance}% of ${working} working staff`, '#16a34a') +
-        card('Below target', below, 'need immediate improvement', '#dc2626') +
+        card('Below target', below, excluded ? `need improvement · ${excluded} on special duty excluded` : 'need immediate improvement', '#dc2626') +
         card('Avg captures / staff', avg, `monthly pace ${avg * PERF_TARGET.workingDays} vs ${PERF_TARGET.monthly}`, '#7c3aed') +
         card('Top today', best ? escapeHtml(best.fullname.split(' ')[0]) : '—', best ? `${best.total} captures` : '', '#0891b2') +
         card('Lowest today', worst ? escapeHtml(worst.fullname.split(' ')[0]) : '—', worst ? `${worst.total} captures` : '', '#b45309');
@@ -5874,6 +6127,648 @@ if (typeof updateDashboard === 'function') {
         return out;
     };
 }
+</script>
+
+<script>
+/* =====================================================================
+   CALL-BACK FORM AUDIT  ·  ON SUPERVISION  ·  ISSUE LOG REMINDER
+   ===================================================================== */
+
+let cbfConfig      = { start: 1, end: 4000 };
+let cbfRegistry    = {};
+let cbfDismissed   = [];
+let cbfScanAllDates = false;
+let supervisionList = [];
+
+function cbfLocalLoad() {
+    try {
+        const c = JSON.parse(localStorage.getItem('cbfConfig') || 'null');   if (c) cbfConfig = c;
+        const r = JSON.parse(localStorage.getItem('cbfRegistry') || 'null'); if (r) cbfRegistry = r;
+        const s = JSON.parse(localStorage.getItem('supervisionList') || 'null'); if (Array.isArray(s)) supervisionList = s;
+    } catch (e) { console.error(e); }
+}
+function cbfLocalSave() {
+    try {
+        localStorage.setItem('cbfConfig', JSON.stringify(cbfConfig));
+        localStorage.setItem('cbfRegistry', JSON.stringify(cbfRegistry));
+        localStorage.setItem('supervisionList', JSON.stringify(supervisionList));
+    } catch (e) { console.error(e); }
+}
+async function cbfCloudLoad() {
+    if (typeof firebaseInitialized === 'undefined' || !firebaseInitialized) return;
+    try {
+        const [cs, rs, ss] = await Promise.all([
+            database.ref('callbackFormConfig').once('value'),
+            database.ref('callbackFormRegistry').once('value'),
+            database.ref('supervisionList').once('value')
+        ]);
+        if (cs.val()) cbfConfig = { start: Number(cs.val().start) || 1, end: Number(cs.val().end) || 4000 };
+        if (rs.val()) cbfRegistry = rs.val() || {};
+        const sv = ss.val();
+        if (sv) supervisionList = Array.isArray(sv) ? sv.filter(Boolean) : Object.values(sv);
+        cbfLocalSave();
+        buildCallbackFormPanel();
+    } catch (e) { console.error('cbf cloud load', e); }
+}
+function cbfCloudSave(what) {
+    if (typeof firebaseInitialized === 'undefined' || !firebaseInitialized) return;
+    try {
+        if (!what || what === 'config')      database.ref('callbackFormConfig').set(cbfConfig);
+        if (!what || what === 'registry')    database.ref('callbackFormRegistry').set(cbfRegistry);
+        if (!what || what === 'supervision') database.ref('supervisionList').set(supervisionList);
+    } catch (e) { console.error(e); }
+}
+
+function cbfNorm(c) { return (c || '').toString().toLowerCase().replace(/[\s\-]+/g, '_').replace(/_+/g, '_').trim(); }
+function cbfFindCol(cols, test) { return cols.find(c => test(cbfNorm(c))); }
+function cbfSheetCols(sheet) { return Object.keys((sheet && sheet[0]) || {}); }
+function cbfSourceSheets() {
+    // Call-back form audit only concerns the Customer Enumeration category —
+    // DSS/HT/LT and Issue Log uploads are never scanned for call-back numbers.
+    const out = [];
+    if (typeof uploadedData === 'object' && uploadedData && Array.isArray(uploadedData.cust) && uploadedData.cust.length) {
+        out.push(uploadedData.cust);
+    }
+    return out;
+}
+
+/* ---------------------------------------------------------------
+   PERSISTED CALL-BACK NOTICE SNAPSHOT
+   The audit table is computed from the freshly uploaded spreadsheet.
+   When a saved dashboard is re-opened later there is no spreadsheet in
+   memory, so the table used to come back empty. We therefore store the
+   scan result inside dashboards/{date} on save and replay it on load.
+   --------------------------------------------------------------- */
+function cbfBuildSnapshot() {
+    const res = cbfScan();
+    if (!res.hasSource) return null;
+    const clean = v => (v === undefined || v === null) ? '' : v;
+    return {
+        savedAt: Date.now(),
+        rangeStart: cbfConfig.start,
+        rangeEnd: cbfConfig.end,
+        noAccessTotal: res.noAccessTotal || 0,
+        ok: res.ok || 0,
+        rows: (res.rows || []).map(r => ({
+            key: clean(r.key), rowDate: clean(r.rowDate), fullname: clean(r.fullname),
+            custNo: clean(r.custNo), bldg: clean(r.bldg), rawForm: clean(r.rawForm),
+            reasons: (r.reasons || []).map(clean)
+        }))
+    };
+}
+
+// Scan result used for rendering: live spreadsheet when present, otherwise the
+// snapshot that was saved with this date's dashboard.
+function cbfResolveScan() {
+    const res = cbfScan();
+    if (res.hasSource) return res;
+    const snap = (typeof reportResults !== 'undefined' && reportResults.cbfSnapshot) || null;
+    if (!snap) return res;
+    const rows = (typeof toArray === 'function' ? toArray(snap.rows || []) : (snap.rows || []))
+        .map(r => ({ ...r, reasons: (typeof toArray === 'function' ? toArray(r.reasons || []) : (r.reasons || [])) }))
+        .filter(r => cbfDismissed.indexOf(r.key) === -1);
+    return {
+        rows: rows,
+        noAccessTotal: snap.noAccessTotal || 0,
+        ok: snap.ok || 0,
+        hasSource: true,
+        fromSnapshot: true,
+        allSeen: {}
+    };
+}
+
+function cbfScan() {
+    const result = { rows: [], noAccessTotal: 0, ok: 0, hasSource: false, allSeen: {} };
+    const dateKey = (typeof reportResults !== 'undefined' && reportResults.dateKey) || '';
+    let startD = null, endD = null;
+    if (dateKey) {
+        if (dateKey.includes('_to_')) { startD = dateKey.split('_to_')[0]; endD = dateKey.split('_to_')[1]; }
+        else {
+            startD = dateKey;
+            // A freshly-generated (not yet saved/reloaded) date-range report keeps
+            // its range as dateKey + endDateKey rather than a single "a_to_b" key —
+            // fall back to that so multi-day reports aren't narrowed to day one.
+            endD = (typeof reportResults !== 'undefined' && reportResults.endDateKey) || dateKey;
+        }
+    }
+
+    const nameMap = {};
+    ['aedc', 'bss', 'nysc'].forEach(g => {
+        ((typeof reportResults !== 'undefined' && reportResults[g] && reportResults[g].results) || []).forEach(r => {
+            if (r.username) nameMap[r.username.toLowerCase()] = r.fullname || r.username;
+        });
+    });
+
+    const seen = {};
+    const candidates = [];
+
+    cbfSourceSheets().forEach(sheet => {
+        const cols = cbfSheetCols(sheet);
+        const cbCol = cbfFindCol(cols, c => c.includes('call') && c.includes('back') && (c.includes('form') || c.includes('no')));
+        if (!cbCol) return;
+        result.hasSource = true;
+        const billCol = cbfFindCol(cols, c => c.includes('billing') && c.includes('status'));
+        const custCol = cbfFindCol(cols, c => (c.includes('customer') && (c.includes('no') || c.includes('number') || c.includes('id'))) || c === 'account_number' || c === 'account_no');
+        const bldgCol = cbfFindCol(cols, c => c.includes('building') && (c.includes('code') || c.includes('no'))) || cbfFindCol(cols, c => c.includes('building'));
+        const userCol = cbfFindCol(cols, c => c === 'username' || c === 'user' || c === 'user_name' || c.includes('username') || c === 'enumerator');
+        const timeCol = cbfFindCol(cols, c => c.includes('time') || c.includes('date') || c === 'today' || c === 'created_at');
+
+        sheet.forEach(row => {
+            const billing = (row[billCol] || '').toString().trim();
+            const isNoAccess = billing.toLowerCase().replace(/[\s_\-]+/g, ' ').includes('no access');
+            const rawForm = (row[cbCol] === 0 ? '0' : (row[cbCol] || '')).toString().trim();
+            let rowDate = '';
+            if (timeCol && row[timeCol]) { try { rowDate = toLocalDateKey(row[timeCol]) || ''; } catch (e) { rowDate = ''; } }
+            const username = (row[userCol] || '').toString().trim().toLowerCase();
+            const custNo = (row[custCol] || '').toString().trim();
+            const bldg = (row[bldgCol] || '').toString().trim();
+
+            const numeric = rawForm.replace(/[^0-9]/g, '');
+            if (numeric) {
+                if (!seen[numeric]) seen[numeric] = [];
+                seen[numeric].push({ date: rowDate, username: username, cust: custNo });
+            }
+
+            if (!isNoAccess) return;
+            const inRange = cbfScanAllDates || !startD || !rowDate || (rowDate >= startD && rowDate <= endD);
+            if (!inRange) return;
+            result.noAccessTotal++;
+            candidates.push({ rowDate: rowDate, username: username, fullname: nameMap[username] || username || '—', custNo: custNo, bldg: bldg, rawForm: rawForm, numeric: numeric });
+        });
+    });
+
+    result.allSeen = seen;
+
+    candidates.forEach(c => {
+        const reasons = [];
+        const upper = c.rawForm.toUpperCase();
+        if (!c.rawForm) reasons.push('BLANK — no call-back form number entered');
+        else if (!/[0-9]/.test(c.rawForm) || ['NA', 'N/A', 'NIL', 'NONE', 'NO', '-', '--'].indexOf(upper) !== -1) reasons.push('NOT A VALID NUMBER ("' + c.rawForm + '")');
+        else {
+            const n = Number(c.numeric);
+            if (n < Number(cbfConfig.start)) reasons.push('BELOW ISSUED RANGE (' + n + ' < ' + cbfConfig.start + ')');
+            if (n > Number(cbfConfig.end)) reasons.push('ABOVE ISSUED RANGE (' + n + ' > ' + cbfConfig.end + ')');
+            const occ = seen[c.numeric] || [];
+            const distinct = new Set(occ.map(o => (o.date || '') + '|' + (o.cust || '')));
+            const reg = cbfRegistry[c.numeric];
+            if (distinct.size > 1) reasons.push('DUPLICATE — form no ' + c.numeric + ' used ' + occ.length + ' times');
+            else if (reg && reg.split('|')[2] && c.custNo && reg.split('|')[2] !== c.custNo) reasons.push('DUPLICATE — form no ' + c.numeric + ' already recorded on ' + (reg.split('|')[0] || 'an earlier date'));
+        }
+        if (!reasons.length) { result.ok++; return; }
+        const key = [c.rowDate, c.username, c.custNo, c.rawForm].join('||');
+        if (cbfDismissed.indexOf(key) !== -1) return;
+        result.rows.push({ rowDate: c.rowDate, username: c.username, fullname: c.fullname, custNo: c.custNo, bldg: c.bldg, rawForm: c.rawForm, reasons: reasons, key: key });
+    });
+
+    result.rows.sort((a, b) => (a.rowDate || '').localeCompare(b.rowDate || '') || a.fullname.localeCompare(b.fullname));
+    return result;
+}
+
+function cbfPanelHTML() {
+    return `
+    <div id="callbackFormPanel" style="background:white;border-radius:8px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #b45309;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <h3 style="font-size:0.9rem;font-weight:700;margin:0;display:flex;align-items:center;gap:6px;color:#b45309;"><span>📄</span> Call-Back Form Audit — No Access Captures</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                <span class="admin-only no-print" style="font-size:10px;color:#92400e;font-weight:600;">Issued range</span>
+                <input type="number" id="cbfStart" class="admin-only no-print" style="width:78px;padding:3px 6px;border:1.5px solid #fcd34d;border-radius:5px;font-size:11px;">
+                <span class="admin-only no-print" style="font-size:11px;color:#92400e;">to</span>
+                <input type="number" id="cbfEnd" class="admin-only no-print" style="width:78px;padding:3px 6px;border:1.5px solid #fcd34d;border-radius:5px;font-size:11px;">
+                <button class="admin-only no-print" onclick="cbfSaveRange()" style="font-size:10px;padding:3px 10px;background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:5px;cursor:pointer;font-weight:600;">💾 Save Range</button>
+                <label class="admin-only no-print" style="font-size:10px;color:#92400e;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="cbfAllDates" onchange="cbfToggleAllDates(this.checked)"> Scan all dates in file</label>
+                <button class="admin-only no-print" onclick="cbfRegisterSeen()" style="font-size:10px;padding:3px 10px;background:#e0e7ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:5px;cursor:pointer;font-weight:600;" title="Numbers register automatically on upload and on Generate Report. Click to force a manual re-scan of the currently loaded Customer Enumeration file.">🗃️ Register Numbers</button>
+                <button class="no-print" onclick="cbfCopyAlert()" style="font-size:10px;padding:3px 10px;background:#fff7ed;color:#b45309;border:1px solid #fed7aa;border-radius:5px;cursor:pointer;font-weight:600;">📋 Copy Alert</button>
+                <button class="no-print" onclick="cbfExportHTML()" style="font-size:10px;padding:3px 10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:5px;cursor:pointer;font-weight:600;">🌐 Export HTML</button>
+                <button class="no-print" onclick="cbfShareHTMLToWhatsApp()" style="font-size:10px;padding:3px 10px;background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:5px;cursor:pointer;font-weight:600;">📲 Share HTML</button>
+                <button class="no-print" id="cbfToggleBtn" onclick="cbfTogglePanel()" data-export-toggle data-toggle-target="cbfPanelBody" style="font-size:10px;padding:3px 10px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:5px;cursor:pointer;font-weight:600;">🔽 Expand</button>
+            </div>
+        </div>
+        <div id="cbfPanelBody" style="display:none;">
+        <div id="cbfSummary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"></div>
+        <div id="cbfRegisterNote" class="no-print" style="font-size:10.5px;color:#3730a3;margin-bottom:8px;"></div>
+        <div id="cbfAlertText" style="white-space:pre-wrap;font-size:0.78rem;line-height:1.6;color:#7c2d12;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:9px;margin-bottom:8px;"></div>
+        <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:10.5px;">
+                <thead style="background:#fef3c7;">
+                    <tr>
+                        <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #fcd34d;">#</th>
+                        <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #fcd34d;">Date</th>
+                        <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #fcd34d;">Enumerator</th>
+                        <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #fcd34d;">Customer No</th>
+                        <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #fcd34d;">Building Code</th>
+                        <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #fcd34d;">call_back_form_no</th>
+                        <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #fcd34d;">Flag</th>
+                        <th class="admin-only no-print" style="padding:6px 8px;border-bottom:2px solid #fcd34d;"></th>
+                    </tr>
+                </thead>
+                <tbody id="cbfTableBody"></tbody>
+            </table>
+        </div>
+        </div>
+    </div>
+
+    <div id="supervisionPanel" style="background:white;border-radius:8px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:4px solid #7c3aed;">
+        <h3 style="font-size:0.9rem;font-weight:700;margin:0 0 6px 0;color:#6d28d9;display:flex;align-items:center;gap:6px;"><span>🕵️</span> Staff ON SUPERVISION</h3>
+        <div class="no-print" style="font-size:0.7rem;color:#6b7280;margin-bottom:6px;">Set a person's status to <strong>ON SUPERVISION</strong> in any table to keep them here permanently. Pick any other status to take them off.</div>
+        <div id="supervisionListBox" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+
+    <div id="issueLogReminderPanel" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin-bottom:12px;border-left:4px solid #16a34a;">
+        <h3 style="font-size:0.9rem;font-weight:700;margin:0 0 6px 0;color:#15803d;display:flex;align-items:center;gap:6px;"><span>📣</span> Issue Log Reminder</h3>
+        <div id="issueLogReminderText" style="white-space:pre-wrap;font-size:0.8rem;line-height:1.7;color:#14532d;"></div>
+    </div>`;
+}
+
+function cbfInjectPanels() {
+    if (document.getElementById('callbackFormPanel')) return;
+    const anchor = document.getElementById('sectionFeederRemark');
+    if (!anchor) return;
+    anchor.insertAdjacentHTML('afterend', cbfPanelHTML());
+    const s = document.getElementById('cbfStart'), e = document.getElementById('cbfEnd');
+    if (s) s.value = cbfConfig.start;
+    if (e) e.value = cbfConfig.end;
+}
+
+function cbfChip(label, value, color, bg) {
+    return `<div style="background:${bg};border-radius:6px;padding:4px 10px;font-size:10px;color:${color};font-weight:700;">${label}: ${value}</div>`;
+}
+
+function buildCallbackFormPanel() {
+    cbfInjectPanels();
+    const body = document.getElementById('cbfTableBody');
+    if (!body) return;
+    const s = document.getElementById('cbfStart'), e = document.getElementById('cbfEnd'), a = document.getElementById('cbfAllDates');
+    if (s && document.activeElement !== s) s.value = cbfConfig.start;
+    if (e && document.activeElement !== e) e.value = cbfConfig.end;
+    if (a) a.checked = cbfScanAllDates;
+
+    const res = cbfResolveScan();
+
+    document.getElementById('cbfSummary').innerHTML =
+        cbfChip('Issued range', cbfConfig.start + ' – ' + cbfConfig.end, '#3730a3', '#e0e7ff') +
+        cbfChip('No Access captures', res.noAccessTotal, '#1e40af', '#dbeafe') +
+        cbfChip('Correctly pasted', res.ok, '#166534', '#dcfce7') +
+        cbfChip('⚠ Flagged', res.rows.length, '#991b1b', '#fee2e2') +
+        cbfChip('🗃️ Registered (all-time)', Object.keys(cbfRegistry).length, '#3730a3', '#e0e7ff');
+
+    const regNoteEl = document.getElementById('cbfRegisterNote');
+    if (regNoteEl) {
+        // The old note only reported how many numbers this particular run ADDED,
+        // which read as "0 new ... ON <date>" even when the table clearly shows
+        // numbers captured on that date (they were already on file from an
+        // earlier run). Report both figures separately so the note matches the
+        // table: how many belong to the report date(s), and how many were new.
+        const forReport = cbfRegisteredInReport();
+        const total = Object.keys(cbfRegistry).length;
+        const label = cbfReportDateLabel();
+        if (cbfLastRegisterInfo) {
+            regNoteEl.textContent =
+                '🗃️ ' + forReport + ' call-back number(s) on file ' + label +
+                ' · ' + cbfLastRegisterInfo.added + ' newly added in the last scan' +
+                ' · ' + total + ' total on file.';
+        } else {
+            regNoteEl.textContent =
+                '🗃️ ' + forReport + ' call-back number(s) on file ' + label +
+                ' · ' + total + ' total on file. Numbers register automatically when Customer Enumeration data is uploaded and when a report is generated.';
+        }
+    }
+
+    const alertEl = document.getElementById('cbfAlertText');
+    if (!res.hasSource) {
+        alertEl.textContent = 'No call-back form details are on file for this date, and no customer enumeration file is currently loaded. Upload the customer enumeration file (or re-save this date) to run this audit.';
+    } else if (!res.rows.length) {
+        alertEl.textContent = '✅ All "No Access" captures carry a valid call-back form number within the issued range (' + cbfConfig.start + '–' + cbfConfig.end + '). Well done.';
+    } else {
+        const names = Array.from(new Set(res.rows.map(r => r.fullname)));
+        alertEl.textContent =
+            '⚠️ ATTENTION: ' + (names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]) + '.\n\n' +
+            res.rows.length + ' "No Access" capture(s) have a missing, invalid, duplicated or out-of-range call_back_form_no (issued range ' + cbfConfig.start + '–' + cbfConfig.end + ').\n\n' +
+            'Every "No Access" premises MUST have a call-back notice pasted and its form number correctly captured — that notice is how the customer reaches AEDC through the official communication channels. Kindly use the customer number and building code listed below to trace and fix each entry today.';
+    }
+
+    body.innerHTML = res.rows.length ? res.rows.map((r, i) => `
+        <tr style="background:${i % 2 === 0 ? '#fffbeb' : '#ffffff'};">
+            <td style="padding:5px 8px;border-bottom:1px solid #fde68a;">${i + 1}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid #fde68a;">${escapeHtml(r.rowDate || '—')}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid #fde68a;font-weight:600;">${escapeHtml(r.fullname)}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid #fde68a;font-family:monospace;">${escapeHtml(r.custNo || '—')}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid #fde68a;font-family:monospace;">${escapeHtml(r.bldg || '—')}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid #fde68a;font-weight:700;color:#b91c1c;">${escapeHtml(r.rawForm || '(blank)')}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid #fde68a;color:#991b1b;">${r.reasons.map(x => escapeHtml(x)).join('<br>')}</td>
+            <td class="admin-only no-print" style="padding:5px 8px;border-bottom:1px solid #fde68a;text-align:center;"><button onclick="cbfDismiss('${encodeURIComponent(r.key)}')" title="Dismiss corrected row" style="background:#fee2e2;color:#991b1b;border:none;border-radius:5px;width:20px;height:20px;cursor:pointer;font-weight:700;">✕</button></td>
+        </tr>`).join('')
+        : `<tr><td colspan="8" style="padding:8px;text-align:center;color:#9ca3af;font-style:italic;">No flagged call-back form numbers.</td></tr>`;
+
+    cbfAutoCollapse(res.rows.length);
+    renderSupervisionPanel();
+    renderIssueLogReminder();
+}
+
+// Report date window (same logic the audit scan uses)
+function cbfReportRange() {
+    const dateKey = (typeof reportResults !== 'undefined' && reportResults.dateKey) || '';
+    if (!dateKey) return null;
+    if (dateKey.includes('_to_')) {
+        const p = dateKey.split('_to_');
+        return { start: p[0], end: p[1] };
+    }
+    return { start: dateKey, end: (typeof reportResults !== 'undefined' && reportResults.endDateKey) || dateKey };
+}
+
+// How many registered call-back numbers were first seen within the report date(s)
+function cbfRegisteredInReport() {
+    const range = cbfReportRange();
+    const keys = Object.keys(cbfRegistry);
+    if (!range) return keys.length;
+    let n = 0;
+    keys.forEach(num => {
+        const d = (cbfRegistry[num] || '').split('|')[0] || '';
+        if (d && d >= range.start && d <= range.end) n++;
+    });
+    return n;
+}
+
+// Panel stays minimized unless something is actually flagged; a manual toggle wins
+function cbfAutoCollapse(flaggedCount) {
+    const body = document.getElementById('cbfPanelBody');
+    const btn = document.getElementById('cbfToggleBtn');
+    if (!body || !btn) return;
+    if (window._cbfUserToggled) return;
+    const shouldOpen = flaggedCount > 0;
+    body.style.display = shouldOpen ? '' : 'none';
+    btn.textContent = shouldOpen ? '🔼 Collapse' : '🔽 Expand';
+}
+
+function cbfTogglePanel() {
+    const body = document.getElementById('cbfPanelBody');
+    const btn = document.getElementById('cbfToggleBtn');
+    if (!body || !btn) return;
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : '';
+    btn.textContent = isOpen ? '🔽 Expand' : '🔼 Collapse';
+    window._cbfUserToggled = true;
+}
+
+// ── Call-Back Form Audit: standalone HTML export + WhatsApp share ──
+function cbfBuildExportHTML() {
+    const panel = document.getElementById('callbackFormPanel');
+    if (!panel) { showStatus('Call-back form audit is not ready yet', 'warning'); return null; }
+    const clone = panel.cloneNode(true);
+    clone.querySelectorAll('.no-print, .admin-only').forEach(el => el.remove());
+    const b = clone.querySelector('#cbfPanelBody');
+    if (b) b.style.display = '';
+    const label = cbfReportDateLabel().replace(/^ON /, '');
+    const comment = cbfCommentText();
+    const filename = 'Call-Back-Form-Audit_' + label.replace(/[^A-Za-z0-9]+/g, '-') + '.html';
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Call-Back Form Audit — ${escapeHtml(label)}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f3f4f6;color:#111827;padding:18px}
+  table{border-collapse:collapse;width:100%}
+  .wrap{max-width:1000px;margin:0 auto}
+  .hdr{background:linear-gradient(135deg,#b45309,#d97706);color:#fff;border-radius:12px;padding:18px 20px;margin-bottom:14px}
+  .hdr h1{font-size:1.1rem;margin:0}
+  .hdr p{font-size:0.78rem;opacity:0.92;margin-top:4px}
+  .note{white-space:pre-wrap;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px;font-size:0.8rem;line-height:1.65;color:#7c2d12;margin-top:14px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hdr">
+      <h1>📄 Call-Back Form Audit — No Access Captures</h1>
+      <p>${escapeHtml(label)}</p>
+    </div>
+    ${clone.outerHTML}
+    <div class="note">${escapeHtml(comment)}</div>
+    <div style="margin-top:18px;text-align:center;font-size:11px;color:#9ca3af;">
+      📊 GIS Enumeration &amp; Asset Mapping Performance Dashboard · Exported ${new Date().toLocaleString()}
+    </div>
+  </div>
+</body>
+</html>`;
+    return { html, filename, comment, label };
+}
+
+// The comment that travels with the export (same text shared on WhatsApp)
+function cbfCommentText() {
+    const el = document.getElementById('cbfAlertText');
+    let txt = (el && el.textContent) || '';
+    try { txt += '\n\n' + buildIssueLogReminderText(); } catch (e) { console.error(e); }
+    return txt.trim();
+}
+
+function cbfExportHTML() {
+    const built = cbfBuildExportHTML();
+    if (!built) return;
+    const blob = new Blob([built.html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = built.filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showStatus('✅ Call-back form audit exported as ' + built.filename, 'success');
+}
+
+async function cbfShareHTMLToWhatsApp() {
+    const built = cbfBuildExportHTML();
+    if (!built) return;
+    const blob = new Blob([built.html], { type: 'text/html;charset=utf-8' });
+    const file = new File([blob], built.filename, { type: 'text/html' });
+    const shareText = '📄 Call-Back Form Audit — No Access Captures (' + built.label + ')\n\n' + built.comment;
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({ files: [file], title: built.filename, text: shareText });
+            showStatus('✅ Shared ' + built.filename, 'success');
+            return;
+        } catch (err) {
+            if (err && err.name === 'AbortError') return;
+            console.error('Web Share failed:', err);
+        }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = built.filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const noteText = shareText + '\n\nFile "' + built.filename + '" was just downloaded — please attach it here from your Downloads folder.';
+    const params = new URLSearchParams({ text: noteText });
+    const waUrl = isMobile ? 'https://wa.me/?' + params.toString() : 'https://web.whatsapp.com/send?' + params.toString();
+    window.open(waUrl, '_blank', 'noopener');
+    showStatus('📥 Downloaded ' + built.filename + ' — attach it to WhatsApp manually', 'info');
+}
+
+function cbfSaveRange() {
+    const s = Number(document.getElementById('cbfStart').value);
+    const e = Number(document.getElementById('cbfEnd').value);
+    if (!s || !e || e < s) { showStatus('Enter a valid call-back form range', 'error'); return; }
+    cbfConfig = { start: s, end: e };
+    cbfLocalSave(); cbfCloudSave('config');
+    buildCallbackFormPanel();
+    showStatus('Call-back form range set to ' + s + ' – ' + e, 'success');
+}
+function cbfToggleAllDates(v) { cbfScanAllDates = !!v; buildCallbackFormPanel(); }
+function cbfDismiss(encKey) { const k = decodeURIComponent(encKey); if (cbfDismissed.indexOf(k) === -1) cbfDismissed.push(k); buildCallbackFormPanel(); }
+// info about the most recent register run, shown in the panel itself so it's
+// visible even when the run happened silently (auto-triggered on upload / generate)
+let cbfLastRegisterInfo = null; // { added, total, dateLabel }
+function cbfRegisterSeen(opts) {
+    opts = opts || {};
+    const res = cbfScan();
+    let added = 0;
+    Object.keys(res.allSeen).forEach(num => {
+        const o = res.allSeen[num][0];
+        if (!cbfRegistry[num]) { cbfRegistry[num] = [o.date || '', o.username || '', o.cust || ''].join('|'); added++; }
+    });
+    cbfLocalSave(); cbfCloudSave('registry');
+    cbfLastRegisterInfo = { added: added, total: Object.keys(cbfRegistry).length, dateLabel: cbfReportDateLabel() };
+    buildCallbackFormPanel();
+    if (!opts.silent) {
+        showStatus('Registered ' + added + ' new call-back form number(s) — total ' + Object.keys(cbfRegistry).length, 'success');
+    }
+    return cbfLastRegisterInfo;
+}
+function cbfCopyAlert() {
+    const el = document.getElementById('cbfAlertText');
+    const txt = ((el && el.textContent) || '') + '\n\n' + buildIssueLogReminderText();
+    navigator.clipboard.writeText(txt).then(
+        () => showStatus('Call-back form alert copied — paste on WhatsApp', 'success'),
+        () => showStatus('Copy failed — select the text manually', 'error'));
+}
+
+function supervisionFullname(username) {
+    let n = username;
+    ['aedc', 'bss', 'nysc'].forEach(g => {
+        ((typeof reportResults !== 'undefined' && reportResults[g] && reportResults[g].results) || []).forEach(r => {
+            if ((r.username || '').toLowerCase() === username) n = r.fullname || username;
+        });
+    });
+    return n;
+}
+function setSupervision(username, on) {
+    if (!username) return;
+    const u = username.toLowerCase();
+    if (on) { if (supervisionList.indexOf(u) === -1) supervisionList.push(u); }
+    else { supervisionList = supervisionList.filter(x => x !== u); }
+    cbfLocalSave(); cbfCloudSave('supervision');
+    renderSupervisionPanel();
+}
+function removeSupervision(encUser) {
+    setSupervision(decodeURIComponent(encUser), false);
+    if (typeof renderCurrentDashboardView === 'function') renderCurrentDashboardView();
+}
+function applySupervisionStatuses() {
+    if (!supervisionList.length || typeof reportResults === 'undefined') return;
+    ['aedc', 'bss', 'nysc'].forEach(g => {
+        ((reportResults[g] && reportResults[g].results) || []).forEach(r => {
+            if (supervisionList.indexOf((r.username || '').toLowerCase()) !== -1) r.status = 'supervision';
+        });
+    });
+}
+function renderSupervisionPanel() {
+    const el = document.getElementById('supervisionListBox');
+    if (!el) return;
+    el.innerHTML = supervisionList.length
+        ? supervisionList.map(u => `<span style="background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:6px;">🕵️ ${escapeHtml(supervisionFullname(u))}<button class="admin-only no-print" onclick="removeSupervision('${encodeURIComponent(u)}')" style="background:none;border:none;color:#7c3aed;cursor:pointer;font-weight:700;">✕</button></span>`).join('')
+        : '<span style="color:#9ca3af;font-style:italic;font-size:11px;">No staff currently on supervision.</span>';
+}
+
+function currentIssueLogCount() {
+    let n = 0;
+    ['aedc', 'bss', 'nysc'].forEach(g => {
+        ((typeof reportResults !== 'undefined' && reportResults[g] && reportResults[g].results) || []).forEach(r => { n += Number(r.issues) || 0; });
+    });
+    return n;
+}
+function cbfReportDateLabel() {
+    const dateKey = (typeof reportResults !== 'undefined' && reportResults.dateKey) || '';
+    if (!dateKey) return 'TODAY';
+    try {
+        let sd = dateKey, ed = dateKey;
+        if (dateKey.includes('_to_')) { [sd, ed] = dateKey.split('_to_'); }
+        else if (typeof reportResults !== 'undefined' && reportResults.endDateKey) { ed = reportResults.endDateKey; }
+        return sd === ed ? ('ON ' + formatDateFull(sd)) : ('ON ' + formatDateFull(sd) + ' TO ' + formatDateFull(ed));
+    } catch (e) { return 'TODAY'; }
+}
+function buildIssueLogReminderText() {
+    const n = currentIssueLogCount();
+    const dateLabel = cbfReportDateLabel();
+    const head = n === 0
+        ? '🔴 NO ISSUE LOG WAS RAISED ' + dateLabel + '.'
+        : '🟢 ' + n + ' ISSUE LOG' + (n === 1 ? ' WAS' : 'S WERE') + ' RAISED ' + dateLabel + '.';
+    return head + '\n' +
+        'Let us remember to be proactive in identifying and reporting issues (e.g. infractions, whistleblows, customer complaints, overgrown vegetation, faulty lines, transformers or safety concerns, meter relocation, wrong tariff band, etc.).\n' +
+        'Management deems it important that issues are submitted every day enumeration is carried out.';
+}
+function buildWhatsAppNoteText() {
+    let txt = buildIssueLogReminderText();
+    try {
+        const cbf = cbfScan();
+        if (cbf.rows.length) {
+            txt += '\n\n⚠️ ' + cbf.rows.length + ' "No Access" capture(s) have a missing, invalid, duplicated or out-of-range call_back_form_no (issued range ' + cbfConfig.start + '–' + cbfConfig.end + '). Call-back notices must be pasted and the form number captured correctly so customers can reach AEDC through the official communication channels. See the dashboard for the customer numbers and building codes affected.';
+        }
+    } catch (e) { console.error(e); }
+    return txt;
+}
+function renderIssueLogReminder() {
+    const el = document.getElementById('issueLogReminderText');
+    if (el) el.textContent = buildIssueLogReminderText();
+}
+
+/* ---------------- hooks ---------------- */
+['updateStatus', 'updateDashboardStatus'].forEach(fn => {
+    if (typeof window[fn] === 'function') {
+        const orig = window[fn];
+        window[fn] = function (group, index, status) {
+            const list = (typeof reportResults !== 'undefined' && reportResults[group] && reportResults[group].results) || [];
+            const row = list[index];
+            const uname = row && row.username;
+            if (status === 'supervision') {
+                if (row) row.status = 'supervision';
+                setSupervision(uname, true);
+                if (typeof renderCurrentDashboardView === 'function') renderCurrentDashboardView();
+                return;
+            }
+            if (uname && supervisionList.indexOf(uname.toLowerCase()) !== -1) setSupervision(uname, false);
+            return orig.apply(this, arguments);
+        };
+    }
+});
+
+if (typeof updateDashboard === 'function') {
+    const _cbfOrigUpdateDashboard = updateDashboard;
+    updateDashboard = function () {
+        try { applySupervisionStatuses(); } catch (e) { console.error(e); }
+        const out = _cbfOrigUpdateDashboard.apply(this, arguments);
+        try { buildCallbackFormPanel(); } catch (e) { console.error('callback form panel', e); }
+        return out;
+    };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    cbfLocalLoad();
+    setTimeout(() => {
+        cbfInjectPanels();
+        buildCallbackFormPanel();
+        try { autoCollapseFeederRemark(); } catch (e) { console.error(e); }
+    }, 400);
+    setTimeout(() => cbfCloudLoad(), 1800);
+    // Retry the cloud read once an admin signs in (rules block anonymous reads)
+    let cbfLoaded = false;
+    setInterval(() => {
+        if (cbfLoaded) return;
+        if (typeof currentUser !== 'undefined' && currentUser) { cbfLoaded = true; cbfCloudLoad(); }
+    }, 4000);
+});
 </script>
 
 </body>
