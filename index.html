@@ -620,6 +620,8 @@
                           <span id="accessBadgeHero" class="hero-pill hero-pill-static">&#128065;&#65039; Public View</span>
                           <button type="button" onclick="refreshDashboard()" class="hero-pill">&#128260; Refresh</button>
                           <button type="button" id="controlsPanelToggleBtn" onclick="toggleControlsPanel()" class="hero-pill">&#9881;&#65039; Filters, Options &amp; Tools</button>
+                          <button type="button" id="ccToggleBtn" onclick="ccApplyMode(!document.getElementById('dashboardCapture').classList.contains('cc-on'))" class="hero-pill no-print" title="Switch between the Command Center look and the classic dashboard">🕰️ Classic view</button>
+                          <select id="ccThemeSel" class="hero-pill no-print" onchange="ccSetTheme(this.value)" title="Change the Command Center colour theme (the export keeps what you pick)" style="background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);cursor:pointer"><option value="dark" style="color:#111">🌙 Dark</option><option value="light" style="color:#111">☀️ Light</option><option value="ocean" style="color:#111">🌊 Ocean</option><option value="sunset" style="color:#111">🌅 Sunset</option></select>
                           <button type="button" id="heroWhatsAppBtn" onclick="shareHTMLToWhatsApp()" class="hero-pill hero-pill-wa" title="Export this dashboard as HTML and send it straight to WhatsApp">
                             <svg viewBox="0 0 32 32" width="17" height="17" aria-hidden="true" focusable="false"><path fill="#25D366" d="M16 0C7.2 0 0 7.2 0 16c0 2.8.7 5.5 2.1 7.9L0 32l8.3-2.2c2.3 1.3 5 1.9 7.7 1.9 8.8 0 16-7.2 16-16S24.8 0 16 0z"/><path fill="#fff" d="M24.3 20.2c-.4 1-2 1.9-2.8 2-.7.1-1.6.1-2.6-.2-3.9-1.2-6.4-5-6.6-5.3-.2-.3-1.6-2.1-1.6-4s1-2.8 1.4-3.2c.3-.3.8-.4 1-.4h.7c.2 0 .5 0 .8.6.3.7 1 2.5 1.1 2.7.1.2.1.4 0 .7-.1.2-.2.4-.4.6l-.4.5c-.2.2-.3.4-.2.7.2.4.8 1.5 1.8 2.4 1.2 1.2 2.3 1.6 2.6 1.7.3.1.5.1.7-.1.2-.2.8-.9 1-1.2.2-.3.4-.3.7-.2.3.1 2 1 2.4 1.2.3.2.5.2.6.4.1.2.1.9-.2 1.9z"/></svg>
                             <span>Share to WhatsApp</span>
@@ -643,6 +645,18 @@
                       </div>
                     </div>
 
+<div id="ccBg" aria-hidden="true"><svg class="ccbgsvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<path class="hl" d="M455 300q30-40 70-25q40 15 45 55q-5 40-45 45q-60 5-70-75z"/><text x="440" y="285">Aso Rock</text>
+<path class="wt" d="M300 215q30-25 70-10q35 12 30 32q-20 22-60 20q-45-5-40-42z"/><text x="285" y="262">Jabi Lake</text>
+<path class="wt" d="M0 560q150-60 260-20t200 90t200 40t340-30v120H0z" style="fill-opacity:.05"/>
+<path class="rd th" d="M0 120q200 40 330 110t180 180t210 160"/><path class="rd th" d="M60 700q120-180 200-250t250-120"/>
+<path class="rd m" d="M0 80Q250 130 420 250T700 420T1000 470"/><text x="640" y="395">Kubwa Expwy / Airport Rd</text>
+<path class="rd m" d="M230 0Q300 160 360 270T520 520T560 700"/>
+<path class="rd" d="M400 330Q520 420 640 380T850 430"/><path class="rd" d="M500 200Q600 260 700 240T950 180"/><path class="rd" d="M120 330Q260 380 420 360"/>
+<path class="rd" d="M560 120Q580 260 640 380T700 700"/><path class="rd" d="M780 0Q760 200 820 330T930 700"/>
+<circle class="rd" cx="560" cy="360" r="150" style="stroke-dasharray:4 8"/><circle class="rd" cx="560" cy="360" r="260" style="stroke-dasharray:2 10;stroke-opacity:.15"/>
+<text x="70" y="95">Kubwa</text><text x="160" y="205">Kukwaba</text><text x="230" y="330">Gwarinpa</text><text x="330" y="195">Jabi</text><text x="380" y="130">Katampe</text><text x="470" y="215">Maitama</text><text x="590" y="285">Wuse II</text><text x="560" y="420">Garki</text><text x="640" y="470">Asokoro</text><text x="440" y="405">Central Area</text><text x="810" y="330">Nyanya / Karu</text><text x="150" y="545">Airport</text><text x="600" y="640">Lugbe</text><text x="720" y="140">Mpape</text></svg></div>
+                    <div id="ccRoot"></div>
                     <!-- ===== LEGACY MODE CONTENT ===== -->
                     <div id="legacyModeContent">
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
@@ -2946,10 +2960,12 @@
   <title>${escapeHtml(pageTitle)}</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>${inlineCSS}</style>
+  <style>${typeof CC_CSS==='string'?CC_CSS:''}</style>
 </head>
 <body>
   <div style="max-width:1100px;margin:0 auto;">
     ${clone.outerHTML}
+    ${typeof ccExportScript==='function'?ccExportScript(clone):''}
     <div style="margin-top:24px;padding-top:14px;border-top:2px dashed #d1d5db;text-align:center;">
       <div style="font-size:11px;color:#9ca3af;">
         📊 GIS Enumeration &amp; Asset Mapping Performance Dashboard &nbsp;·&nbsp; Exported ${new Date().toLocaleString()}
@@ -6769,6 +6785,504 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof currentUser !== 'undefined' && currentUser) { cbfLoaded = true; cbfCloudLoad(); }
     }, 4000);
 });
+</script>
+
+<script id="ccScript">
+/* ===== GIS Command Center layer (v1): DT lookup, feeder network nodes, classic-view switch ===== */
+const CC_CSS = `
+#dashboardCapture.cc-on .gis-hero{background:radial-gradient(60% 90% at 6% 0%,#7c3aedcc,transparent),radial-gradient(50% 80% at 100% 8%,#ec4899b0,transparent),radial-gradient(60% 90% at 78% 115%,#06b6d4b0,transparent),#0b0720;box-shadow:0 18px 48px -18px #7c3aed,inset 0 0 0 1px #ffffff22}
+#dashboardCapture.cc-on .gis-hero-rule{background:linear-gradient(90deg,transparent,#22d3ee,#f472b6,#fbbf24,transparent);box-shadow:0 0 18px #f472b688}
+#dashboardCapture.cc-on .gis-hero-title{font-weight:800}
+.cc-eyebrow{font-weight:900;font-size:clamp(1.05rem,2.8vw,1.85rem);letter-spacing:.14em;text-transform:uppercase;margin:16px auto 0;line-height:1.2;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:.45em;filter:drop-shadow(0 2px 10px #00000066)}
+#ccRoot .live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;animation:pl 1.6s infinite}
+@keyframes pl{50%{box-shadow:0 0 0 6px transparent;opacity:.5}}
+#ccRoot .seg button{background:var(--p);color:var(--mu);border:1px solid var(--ln);padding:6px 14px;cursor:pointer;font:inherit}
+#ccRoot .seg button:first-child{border-radius:8px 0 0 8px}
+#ccRoot .seg button:last-child{border-radius:0 8px 8px 0}
+#ccRoot .seg .on{background:var(--ac);color:#04121a;font-weight:700}
+#ccRoot .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+#ccRoot .card{background:color-mix(in srgb,var(--p) 92%,transparent);border:1px solid var(--ln);border-radius:14px;padding:14px;backdrop-filter:blur(6px)}
+#ccRoot .kpi b{display:block;font:700 1.8rem 'Space Mono',monospace;color:var(--ac)}
+#ccRoot .kpi span{color:var(--mu);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+#ccRoot .grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:12px}
+#ccRoot h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mu);margin-bottom:10px}
+#ccRoot #ccNet svg{width:100%;height:auto;display:block;border-radius:10px;background:var(--p2)}
+#ccRoot .node{cursor:pointer;transition:.2s}
+#ccRoot .node:hover circle.c{filter:brightness(1.3)}
+#ccRoot .row{display:grid;grid-template-columns:22px 1fr 44px;gap:8px;align-items:center;padding:5px 0;font-size:.82rem;cursor:default}
+#ccRoot .bar{height:6px;border-radius:9px;background:var(--p2);margin-top:3px;overflow:hidden}
+#ccRoot .bar i{display:block;height:100%;border-radius:9px;background:var(--ac);width:0;transition:width .7s}
+#ccRoot .row em{font:700 .8rem 'Space Mono',monospace;text-align:right;font-style:normal}
+#ccRoot .tip{position:fixed;pointer-events:none;background:var(--p);border:1px solid var(--ac);padding:6px 10px;border-radius:8px;font-size:.75rem;opacity:0;transition:opacity .15s;z-index:9}
+#ccRoot .alert{border-left:3px solid var(--er)}
+#ccRoot .al{font-size:.8rem;color:var(--mu);margin-top:6px}
+#ccRoot .al b{color:var(--tx)}
+#ccRoot .chips span{display:inline-block;margin:3px;padding:3px 10px;border-radius:99px;background:var(--p2);font-size:.75rem}
+#ccRoot .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.72rem;color:var(--mu);margin-top:8px}
+#ccBg .rd{fill:none;stroke:var(--ac);stroke-opacity:.22;stroke-width:2}
+#ccBg .rd.m{stroke-width:3.5;stroke-opacity:.3}
+#ccBg .th{stroke-width:1;stroke-opacity:.14}
+#ccBg .wt{fill:var(--ac);fill-opacity:.08;stroke:var(--ac);stroke-opacity:.25}
+#ccBg .hl{fill:var(--mu);fill-opacity:.12;stroke:var(--mu);stroke-opacity:.3}
+#ccBg text{fill:var(--mu);fill-opacity:.55;font:600 11px 'DM Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase}
+#ccRoot .tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+#ccRoot .tools input{background:var(--p2);color:var(--tx);border:1px solid var(--ln);border-radius:9px;padding:7px 12px;font:inherit;flex:1;min-width:160px}
+#ccRoot .tools button{background:var(--p2);color:var(--mu);border:1px solid var(--ln);border-radius:99px;padding:5px 12px;cursor:pointer;font:inherit;font-size:.78rem}
+#ccRoot .tools button.on{background:var(--ac);color:#04121a;font-weight:700}
+#ccRoot .tw{overflow-x:auto;margin-bottom:14px}
+#ccRoot table{border-collapse:collapse;width:100%;min-width:900px;font-size:.78rem}
+#ccRoot th{text-align:left;color:var(--mu);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding:8px 6px;border-bottom:1px solid var(--ln);position:sticky;top:0;background:var(--p)}
+#ccRoot td{padding:7px 6px;border-bottom:1px solid var(--ln)}
+#ccRoot td.n{font-family:'Space Mono',monospace;text-align:center}
+#ccRoot tr:hover td{background:var(--p2)}
+#ccRoot tfoot td{font-weight:700;color:var(--ac);border-top:2px solid var(--ln)}
+#ccRoot .bd{padding:2px 9px;border-radius:99px;font-size:.68rem;font-weight:700;white-space:nowrap}
+#ccRoot .bd.ok{background:#16653433;color:var(--ok)}
+#ccRoot .bd.no{background:#92400e33;color:var(--wa)}
+#ccRoot .bd.ab{background:#991b1b33;color:var(--er)}
+#ccRoot .bd.su{background:#1d4ed833;color:var(--ac)}
+#ccRoot .gt{margin:6px 0 8px;font-size:.9rem}
+#ccRoot .card{background:color-mix(in srgb,var(--p) 80%,transparent);border-top:3px solid var(--k,var(--ac));transition:transform .2s,box-shadow .2s}
+#ccRoot .card:hover{transform:translateY(-3px);box-shadow:0 12px 32px -12px var(--k,var(--ac))}
+#ccRoot .kpis .kpi:nth-child(1){--k:#22d3ee}
+#ccRoot .kpis .kpi:nth-child(2){--k:#f472b6}
+#ccRoot .kpis .kpi:nth-child(3){--k:#fbbf24}
+#ccRoot .kpis .kpi:nth-child(4){--k:#a78bfa}
+#ccRoot .kpis .kpi:nth-child(5){--k:#34d399}
+#ccRoot .kpis .kpi:nth-child(6){--k:#fb923c}
+#ccRoot .kpi b{color:var(--k);text-shadow:0 0 18px var(--k)}
+#ccRoot .grid>.card:nth-child(1){--k:#22d3ee}
+#ccRoot .grid>.card:nth-child(2){--k:#f472b6}
+#ccRoot .grid>.card:nth-child(3){--k:#fb7185}
+#ccRoot .grid>.card:nth-child(4){--k:#fbbf24}
+#ccRoot .grid>.card:nth-child(5){--k:#a78bfa}
+#ccRoot .grid>.card:nth-child(6){--k:#a3e635}
+#ccRoot .card h2{color:var(--k,var(--mu))}
+#ccRoot .seg .on{background:linear-gradient(90deg,#ec4899,#8b5cf6);color:#fff}
+#ccRoot .seg button:hover{color:var(--tx)}
+#ccRoot .row{padding:5px 6px;border-radius:8px;transition:background .15s}
+#ccRoot .row:hover{background:#ffffff14}
+#ccRoot .chips span{--c:#22d3ee;background:color-mix(in srgb,var(--c) 22%,transparent);border:1px solid var(--c);transition:transform .15s}
+#ccRoot .chips span:hover{transform:scale(1.07)}
+#ccRoot .chips span:nth-child(4n+2){--c:#f472b6}
+#ccRoot .chips span:nth-child(4n+3){--c:#fbbf24}
+#ccRoot .chips span:nth-child(4n){--c:#a78bfa}
+#ccRoot .tools button:hover{border-color:#f472b6;color:var(--tx)}
+#ccRoot .tools button.on{background:linear-gradient(90deg,#22d3ee,#a3e635)}
+#ccRoot tr:hover td{background:#ffffff12}
+#ccRoot tfoot td{color:#fbbf24}
+#ccRoot .gt b{color:#22d3ee}
+#ccRoot .bd.ok{background:#34d39933;color:#6ee7b7}
+#ccRoot .bd.no{background:#fbbf2433;color:#fcd34d}
+#ccRoot .bd.ab{background:#fb718533;color:#fda4af}
+#ccRoot .bd.su{background:#818cf833;color:#c7d2fe}
+#ccBg .rd{stroke:#a78bfa;stroke-opacity:.4}
+#ccBg .rd.m{stroke:#f472b6;stroke-opacity:.5}
+#ccBg .th{stroke:#22d3ee;stroke-opacity:.3}
+#ccBg .wt{fill:#22d3ee;fill-opacity:.15;stroke:#22d3ee;stroke-opacity:.5}
+#ccBg .hl{fill:#fbbf24;fill-opacity:.15;stroke:#fbbf24;stroke-opacity:.5}
+#ccBg text{fill:#c4b5fd;fill-opacity:.6}
+#dashboardCapture:not(.cc-on) #ccRoot,#dashboardCapture:not(.cc-on) #ccBg,#dashboardCapture:not(.cc-on) .cc-eyebrow{display:none}
+#dashboardCapture.cc-on{--bg:#08051a;--p:#1c1650;--p2:#2a2370;--tx:#e6edf7;--mu:#8aa0c0;--ln:#3b3490;--ac:#22d3ee;--ok:#34d399;--wa:#fbbf24;--er:#f87171;position:relative;isolation:isolate;padding:14px;color:var(--tx);font:14px/1.45 'DM Sans',system-ui,sans-serif;--cc-card:#1c1650;--cc-cardln:#4a42a8;--cc-cardtx:#fff;--cc-sub:#d4d9ff;--cc-shadow:#000}
+#dashboardCapture.cc-on>:not(.gis-hero):not(#ccRoot):not(#ccBg){display:none!important}
+#dashboardCapture.cc-on>.gis-hero,#dashboardCapture.cc-on>#ccRoot{position:relative;z-index:1}
+#ccBg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+#ccBg .ccbgsvg{position:static;display:block;width:100%;height:100%;opacity:.8}
+body.cc-mode{background-color:#08051a!important;background-image:radial-gradient(60% 50% at 8% 0%,#7c3aed66,transparent),radial-gradient(50% 45% at 98% 8%,#ec489960,transparent),radial-gradient(60% 50% at 85% 100%,#06b6d455,transparent),radial-gradient(40% 40% at 0% 92%,#f59e0b40,transparent),linear-gradient(#ffffff0a 1px,transparent 1px),linear-gradient(90deg,#ffffff0a 1px,transparent 1px)!important;background-size:100% 100%,100% 100%,100% 100%,100% 100%,44px 44px,44px 44px!important;background-attachment:fixed!important}
+#ccRoot .grid{align-items:stretch}#ccRoot .grid>*,#ccRoot .cc-grid>*,#ccRoot .card,#ccRoot .tw{min-width:0;max-width:100%}#ccRoot,#dashboardCapture.cc-on{min-width:0;max-width:100%}#ccRoot .cc-fill{display:flex;flex-direction:column}#ccRoot #ccNet{flex:1;display:flex}#ccRoot #ccNet svg.cc-svg{flex:1;max-height:600px;min-height:240px;height:auto;overflow:visible}#ccRoot #ccLb{flex:1;display:flex;flex-direction:column;justify-content:space-evenly}#ccRoot #ccDetail{margin-top:0}#ccRoot #ccNet svg{background:var(--p2);border-radius:10px}
+.cc-ebt{background:linear-gradient(90deg,#67e8f9,#f9a8d4,#fde68a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.cc-sig{position:relative;display:inline-block;margin-right:.3em;animation:ccFloat 3s ease-in-out infinite;-webkit-text-fill-color:initial}
+.cc-sig::before,.cc-sig::after{content:'';position:absolute;left:50%;top:50%;width:1.3em;height:1.3em;margin:-.65em 0 0 -.65em;border-radius:50%;border:2px solid #22d3ee;opacity:0;pointer-events:none;animation:ccPing 2.4s ease-out infinite}
+.cc-sig::after{border-color:#f472b6;animation-delay:1.2s}
+@keyframes ccPing{0%{transform:scale(.5);opacity:.9}100%{transform:scale(2.8);opacity:0}}
+@keyframes ccFloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-3px) rotate(8deg)}}
+#ccRoot .cc-fig{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 6px}#ccRoot .cc-fig b{display:block;font:700 1.6rem 'Space Mono',monospace;color:var(--k)}#ccRoot .cc-fig span{font-size:.7rem;color:var(--mu)}
+#ccRoot details.cc-more{margin-top:8px}#ccRoot summary{cursor:pointer;display:inline-block;padding:5px 14px;border-radius:99px;font-size:.78rem;font-weight:700;background:color-mix(in srgb,var(--k) 25%,transparent);border:1px solid var(--k);list-style:none}
+#ccRoot summary::-webkit-details-marker{display:none}#ccRoot details[open]>summary::after{content:' ▲'}#ccRoot details:not([open])>summary::after{content:' ▼'}
+#ccRoot .cc-classic{margin-top:8px;background:#fff;color:#1f2937;border-radius:10px;padding:8px;overflow-x:auto}
+#ccRoot .cc-classic table{min-width:0;width:100%;color:#1f2937}#ccRoot .cc-classic th{position:static;background:transparent;color:inherit;text-transform:none;letter-spacing:0;font-size:inherit;padding:inherit}#ccRoot .cc-classic td{border-bottom:0}#ccRoot .cc-classic tr:hover td{background:transparent}
+.cc-pill{display:inline-block;margin:0 0 6px;padding:1px 9px;border-radius:99px;font-size:.7rem;font-weight:700;background:color-mix(in srgb,var(--k) 40%,var(--cc-card));border:1px solid var(--k);color:var(--cc-cardtx)}
+#ccRoot .cc-card summary{padding:3px 10px;font-size:.7rem}#ccRoot .cc-card details.cc-more{margin-top:4px}
+#dashboardCapture:not(.cc-on) #ccThemeSel{display:none}
+#dashboardCapture.cc-on[data-cc-theme="light"]{--bg:#eef2fb;--p:#ffffff;--p2:#eef1fb;--tx:#1e1b4b;--mu:#5b6490;--ln:#d3daf0;--ac:#0891b2;--ok:#059669;--wa:#b45309;--er:#dc2626;--cc-card:#ffffff;--cc-cardln:#d3daf0;--cc-cardtx:#1e1b4b;--cc-sub:#4b5280;--cc-shadow:#9aa3d0}
+#dashboardCapture.cc-on[data-cc-theme="ocean"]{--bg:#1d6fa3;--p:#17598a;--p2:#2a7db5;--tx:#f0f9ff;--mu:#d0efff;--ln:#5aa6d8;--ac:#8bf0ff;--cc-card:#145184;--cc-cardln:#5aa6d8;--cc-cardtx:#f0f9ff;--cc-sub:#dbf1ff;--cc-shadow:#052338}
+#dashboardCapture.cc-on[data-cc-theme="sunset"]{--bg:#9a4571;--p:#7a2f5b;--p2:#964072;--tx:#fff7ed;--mu:#ffd8a8;--ln:#cf7aa3;--ac:#ffd166;--cc-card:#722a55;--cc-cardln:#d98aae;--cc-cardtx:#fff7ed;--cc-sub:#ffe6cf;--cc-shadow:#2a0c1e}
+#dashboardCapture.cc-on[data-cc-theme="light"] .gis-hero{background:linear-gradient(135deg,#6366f1 0%,#ec4899 55%,#f59e0b 100%);box-shadow:0 14px 34px -16px #6366f1}
+#dashboardCapture.cc-on[data-cc-theme="ocean"] .gis-hero{background:linear-gradient(135deg,#0ea5e9,#6366f1 60%,#0f766e);box-shadow:0 14px 34px -16px #0ea5e9}
+#dashboardCapture.cc-on[data-cc-theme="sunset"] .gis-hero{background:linear-gradient(135deg,#f97316,#db2777 55%,#7c3aed);box-shadow:0 14px 34px -16px #db2777}
+body.cc-mode[data-cc-theme="light"]{background-color:#eef2fb!important;background-image:radial-gradient(60% 50% at 8% 0%,#a5b4fc77,transparent),radial-gradient(50% 45% at 98% 8%,#f9a8d477,transparent),radial-gradient(60% 50% at 85% 100%,#67e8f977,transparent),radial-gradient(40% 40% at 0% 92%,#fde68a88,transparent),linear-gradient(#1e1b4b0d 1px,transparent 1px),linear-gradient(90deg,#1e1b4b0d 1px,transparent 1px)!important}
+body.cc-mode[data-cc-theme="ocean"]{background-color:#1d6fa3!important;background-image:radial-gradient(60% 50% at 8% 0%,#38bdf888,transparent),radial-gradient(50% 45% at 98% 8%,#818cf888,transparent),radial-gradient(60% 50% at 85% 100%,#22d3ee77,transparent),radial-gradient(40% 40% at 0% 92%,#6ee7b755,transparent),linear-gradient(#ffffff14 1px,transparent 1px),linear-gradient(90deg,#ffffff14 1px,transparent 1px)!important}
+body.cc-mode[data-cc-theme="sunset"]{background-color:#9a4571!important;background-image:radial-gradient(60% 50% at 8% 0%,#fbbf2477,transparent),radial-gradient(50% 45% at 98% 8%,#f472b688,transparent),radial-gradient(60% 50% at 85% 100%,#c084fc66,transparent),radial-gradient(40% 40% at 0% 92%,#fb923c66,transparent),linear-gradient(#ffffff14 1px,transparent 1px),linear-gradient(90deg,#ffffff14 1px,transparent 1px)!important}
+#dashboardCapture[data-cc-theme="light"] #ccBg .ccbgsvg{opacity:1}
+#dashboardCapture[data-cc-theme="light"] #ccBg .rd{stroke:#6d28d9;stroke-opacity:.3}#dashboardCapture[data-cc-theme="light"] #ccBg .rd.m{stroke:#be185d;stroke-opacity:.38}#dashboardCapture[data-cc-theme="light"] #ccBg .th{stroke:#0891b2;stroke-opacity:.3}
+#dashboardCapture[data-cc-theme="light"] #ccBg .wt{fill:#06b6d4;fill-opacity:.2;stroke:#0891b2;stroke-opacity:.5}#dashboardCapture[data-cc-theme="light"] #ccBg .hl{fill:#f59e0b;fill-opacity:.2;stroke:#d97706;stroke-opacity:.5}
+#dashboardCapture[data-cc-theme="light"] #ccBg text{fill:#4338ca;fill-opacity:.75}
+#dashboardCapture:not([data-cc-theme="light"]) #ccBg .ccbgsvg{opacity:1}
+#dashboardCapture:not([data-cc-theme="light"]) #ccBg .rd{stroke:#e2d9ff;stroke-opacity:.6;stroke-width:2.4}
+#dashboardCapture:not([data-cc-theme="light"]) #ccBg .rd.m{stroke:#ffc2e2;stroke-opacity:.75;stroke-width:4}
+#dashboardCapture:not([data-cc-theme="light"]) #ccBg .th{stroke:#a5f3fc;stroke-opacity:.5}
+#dashboardCapture:not([data-cc-theme="light"]) #ccBg .wt{fill:#67e8f9;fill-opacity:.3;stroke:#a5f3fc;stroke-opacity:.8}
+#dashboardCapture:not([data-cc-theme="light"]) #ccBg .hl{fill:#fde68a;fill-opacity:.28;stroke:#fde68a;stroke-opacity:.85}
+#dashboardCapture:not([data-cc-theme="light"]) #ccBg text{fill:#f5f1ff;fill-opacity:.92}
+#dashboardCapture[data-cc-theme="light"] #ccRoot .bd.ok{background:#10b98122;color:#047857}#dashboardCapture[data-cc-theme="light"] #ccRoot .bd.no{background:#f59e0b2a;color:#92400e}#dashboardCapture[data-cc-theme="light"] #ccRoot .bd.ab{background:#ef44441f;color:#b91c1c}#dashboardCapture[data-cc-theme="light"] #ccRoot .bd.su{background:#6366f11f;color:#3730a3}
+#dashboardCapture[data-cc-theme="light"] #ccRoot .row:hover,#dashboardCapture[data-cc-theme="light"] #ccRoot tr:hover td{background:#1e1b4b0d}
+#dashboardCapture[data-cc-theme="light"] #ccRoot .kpi b{text-shadow:none}
+#dashboardCapture[data-cc-theme="light"] #ccRoot .card{background:color-mix(in srgb,var(--p) 90%,transparent)}
+#dashboardCapture[data-cc-theme="light"] #ccRoot tfoot td{color:#b45309}
+#ccRoot .cc-namelist{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}#ccRoot .cc-namelist span{background:var(--p2);border:1px solid var(--ln);color:var(--tx);border-radius:99px;padding:2px 9px;font-size:.72rem;font-weight:600}
+@media(max-width:820px){#ccRoot .grid{grid-template-columns:minmax(0,1fr)}#ccRoot .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}#ccRoot .kpi b{font-size:1.3rem}#ccRoot .kpi span{font-size:.62rem}#ccRoot .cc-grid{grid-template-columns:minmax(0,1fr)}#dashboardCapture.cc-on{padding:8px}#ccRoot .seg button{padding:6px 10px}#ccRoot .card{padding:10px}}
+#ccRoot table{color:var(--tx)}#ccRoot th{background:var(--p)}#ccRoot .tools{align-items:center}
+.cc-svg{width:100%;max-height:380px;display:block}.cc-svg .nd{cursor:pointer;transition:opacity .2s}.cc-svg .nd:hover circle.c{filter:brightness(1.25)}
+.cc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:10px}
+.cc-card{background:var(--cc-card);border:1px solid var(--cc-cardln);border-left:4px solid var(--k);border-radius:12px;padding:10px 12px;color:var(--cc-cardtx);box-shadow:0 6px 18px -10px var(--cc-shadow)}
+.cc-ct{display:flex;justify-content:space-between;gap:8px;font-size:.85rem}.cc-ct span{color:var(--k);font-weight:800;font-family:'Space Mono',monospace;white-space:nowrap}
+.cc-sub{font-size:.72rem;color:var(--cc-sub);margin:3px 0 8px}
+.cc-dt{display:inline-block;margin:2px 3px 2px 0;padding:2px 9px;border-radius:99px;font-size:.68rem;font-weight:600}
+.cc-dt.on{background:color-mix(in srgb,var(--k) 40%,var(--cc-card));border:1px solid var(--k);color:var(--cc-cardtx)}.cc-dt.off{background:var(--p2);border:1px dashed var(--mu);color:var(--tx)}.cc-dt i{font-style:normal;opacity:.8}
+.cc-none{font-size:.68rem;color:#94a3b8;font-style:italic}.cc-empty{color:#a5b4fc;text-align:center;padding:14px}.cc-hint{font-size:.7rem;color:#c4b5fd;text-transform:none;letter-spacing:0;font-weight:600}
+`;
+let dtLookup = {}, dtDayData = {}, ccSeen = new WeakSet(), ccSel = null, ccLast = null;
+const CC_COL = ['#22d3ee','#f472b6','#fbbf24','#a78bfa','#a3e635','#fb923c','#38bdf8','#f87171','#34d399','#e879f9'];
+const ccKey = v => String(v == null ? '' : v).trim();
+const ccNorm = c => String(c).toLowerCase().replace(/[\s\-]+/g, '_').trim();
+function ccReset() { dtDayData = {}; ccSeen = new WeakSet(); }
+function ccFindDtCol(cols) {
+  return cols.find(c => ['dt_id', 'dtid'].includes(ccNorm(c))) || cols.find(c => ccNorm(c).startsWith('dss_')) || null;
+}
+function ccCollectDt(row, dtCol, dateKey, feeder, username) {
+  if (!dtCol || ccSeen.has(row)) return;
+  ccSeen.add(row);
+  const id = ccKey(row[dtCol]);
+  if (!id || id === '0' || id.toLowerCase() === 'null') return;
+  const d = (dtDayData[dateKey] = dtDayData[dateKey] || {}), f = (d[feeder] = d[feeder] || {}), o = (f[id] = f[id] || { n: 0, u: {} });
+  o.n++; o.u[username] = 1;
+}
+const ccSk = k => String(k).replace(/[.#$\[\]\/]/g, '_');
+function ccDtName(id) {
+  const e = dtLookup[ccKey(id).toLowerCase()]; if (e && e.name) return e.name;
+  const sn = typeof reportResults !== 'undefined' && reportResults && reportResults.ccDt && reportResults.ccDt.names, k = ccSk(ccKey(id).toLowerCase());
+  return (sn && sn[k]) || ccKey(id);
+}
+
+/* ---- DT lookup: upload / save / download / clear ---- */
+function ccStatus() {
+  const n = Object.keys(dtLookup).length, st = document.getElementById('status-dt-lookup'), z = document.getElementById('zone-dt-lookup');
+  const m = Object.values(dtLookup).filter(v => v.lat != null && v.lng != null).length;
+  if (st) st.innerHTML = n ? `<span class="text-green-600">✓ ${n} DT names loaded${m ? ` · ${m} with coordinates (used by the GIS Map)` : ''}</span>` : 'Upload DT lookup (DT ID, DT name, optional feeder, latitude, longitude) — updates are merged into what is saved';
+  if (z) z.classList.toggle('has-file', n > 0);
+}
+function ccSaveDt() {
+  try { localStorage.setItem('eih_dtLookup', JSON.stringify(dtLookup)); } catch (e) {}
+  if (typeof firebaseInitialized !== 'undefined' && firebaseInitialized && typeof currentUser !== 'undefined' && currentUser) {
+    const o = {};
+    Object.values(dtLookup).forEach(v => { const rec = { id: v.id, name: v.name, feeder: v.feeder || '' }; if (v.lat != null && v.lng != null) { rec.lat = v.lat; rec.lng = v.lng; } o[v.id.replace(/[.#$\[\]\/]/g, '_')] = rec; });
+    database.ref('dtLookup').set(o).catch(e => console.error('DT lookup save', e));
+  }
+}
+async function ccLoadDtCloud() {
+  try {
+    if (typeof firebaseInitialized === 'undefined' || !firebaseInitialized) return;
+    const o = (await database.ref('dtLookup').once('value')).val();
+    if (o) { Object.values(o).forEach(v => { if (v && v.id) { const e = { id: v.id, name: v.name, feeder: v.feeder || '' }; if (isFinite(Number(v.lat)) && isFinite(Number(v.lng)) && Number(v.lat) !== 0 && Number(v.lng) !== 0) { e.lat = Number(v.lat); e.lng = Number(v.lng); } dtLookup[ccKey(v.id).toLowerCase()] = e; } }); ccStatus(); ccRefresh(); }
+  } catch (e) { console.error('DT lookup load', e); }
+}
+function handleDtLookupUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const st = document.getElementById('status-dt-lookup'); st.textContent = 'Processing...';
+  const rd = new FileReader();
+  rd.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+      if (!rows.length) throw new Error('The file is empty');
+      const cols = Object.keys(rows[0]);
+      const idC = cols.find(c => /(^|_)(dt|dss)_?(id|code|no)$|^id$/.test(ccNorm(c))) || cols[0];
+      const feC = cols.find(c => ccNorm(c).includes('feeder'));
+      const nmC = cols.find(c => c !== idC && c !== feC && /name|desc|^dt$|^dss$/.test(ccNorm(c))) || cols.find(c => c !== idC && c !== feC);
+      if (!nmC) throw new Error('Could not find a DT name column');
+      const laC = cols.find(c => /^(lat|latitude|y)$/.test(ccNorm(c))) || cols.find(c => ccNorm(c).includes('latitude')) || cols.find(c => ccNorm(c).includes('lat'));
+      const loC = cols.find(c => /^(lng|lon|long|longitude|x)$/.test(ccNorm(c))) || cols.find(c => ccNorm(c).includes('longitude')) || cols.find(c => ccNorm(c).includes('lon'));
+      let n = 0, nc = 0;
+      rows.forEach(r => {
+        const id = ccKey(r[idC]), name = ccKey(r[nmC]); if (!id || !name) return;
+        const f = feC ? ccKey(r[feC]) : '';
+        const entry = { id, name, feeder: (typeof feederLookup !== 'undefined' && feederLookup[f]) || f };
+        const la = laC ? Number(r[laC]) : NaN, lo = loC ? Number(r[loC]) : NaN;
+        if (isFinite(la) && isFinite(lo) && la !== 0 && lo !== 0 && Math.abs(la) <= 90 && Math.abs(lo) <= 180) { entry.lat = la; entry.lng = lo; nc++; }
+        else { const prev = dtLookup[id.toLowerCase()]; if (prev && prev.lat != null && prev.lng != null) { entry.lat = prev.lat; entry.lng = prev.lng; } }
+        dtLookup[id.toLowerCase()] = entry;
+        n++;
+      });
+      input.value = ''; ccStatus(); ccSaveDt(); ccRefresh();
+      showStatus(`DT lookup updated: ${n} rows read, ${Object.keys(dtLookup).length} DT names saved${laC && loC ? `, ${nc} with coordinates` : ''}`, 'success');
+    } catch (err) { st.textContent = 'Error loading file'; showStatus('Error: ' + err.message, 'error'); }
+  };
+  rd.readAsArrayBuffer(file);
+}
+function downloadDtLookup() {
+  const v = Object.values(dtLookup); if (!v.length) { showStatus('No DT lookup saved yet', 'warning'); return; }
+  const ws = XLSX.utils.aoa_to_sheet([['dt_id', 'dt_name', 'feeder', 'latitude', 'longitude'], ...v.sort((a, b) => a.id.localeCompare(b.id)).map(x => [x.id, x.name, x.feeder || '', x.lat != null ? x.lat : '', x.lng != null ? x.lng : ''])]);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'DT Lookup'); XLSX.writeFile(wb, 'dt_lookup.xlsx');
+}
+function clearDtLookupZone() {
+  if (!confirm('Clear the whole DT lookup (this device and cloud)?')) return;
+  dtLookup = {}; try { localStorage.removeItem('eih_dtLookup'); } catch (e) {}
+  if (typeof firebaseInitialized !== 'undefined' && firebaseInitialized && typeof currentUser !== 'undefined' && currentUser) database.ref('dtLookup').remove().catch(console.error);
+  ccStatus(); ccRefresh();
+}
+
+/* ---- Feeder network ---- */
+/* DT IDs captured for THIS report: live uploads when present, else the snapshot saved inside the dashboard (reportResults.ccDt) */
+function ccDayMap(s, e) {
+  const from = s ? s.substring(0, 10) : null, to = e ? e.substring(0, 10) : from, live = {};
+  Object.entries(dtDayData).forEach(([dk, fm]) => { if (dk !== 'unknown' && from && to && (dk < from || dk > to)) return; live[dk] = fm; });
+  if (Object.keys(live).length) return { map: live, snap: false };
+  return { map: (reportResults && reportResults.ccDt && reportResults.ccDt.dtDay) || {}, snap: true };
+}
+function ccSnapshot() {
+  try {
+    const [s, e] = ccRange(), r = ccDayMap(s, e); if (r.snap) return;
+    const dtDay = {}, names = {};
+    Object.entries(r.map).forEach(([dk, fm]) => Object.entries(fm).forEach(([f, ids]) => Object.entries(ids).forEach(([id, o]) => {
+      const a = (dtDay[ccSk(dk)] = dtDay[ccSk(dk)] || {}), b = (a[ccSk(f)] = a[ccSk(f)] || {});
+      b[ccSk(id)] = { n: o.n }; names[ccSk(id.toLowerCase())] = ccDtName(id);
+    })));
+    reportResults.ccDt = { dtDay, names };
+  } catch (err) { console.error('ccSnapshot', err); }
+}
+function ccDtFor(feeder, s, e) {
+  const r = ccDayMap(s, e), fk = r.snap ? ccSk(feeder) : feeder, out = {};
+  Object.values(r.map).forEach(fm => { const d = fm[fk]; if (!d) return; Object.entries(d).forEach(([id, o]) => { const k = id.toLowerCase(), t = out[k] || (out[k] = { id, n: 0 }); t.n += o.n || 0; }); });
+  return out;
+}
+function ccNodeDts(feeder, s, e) {
+  return Object.values(ccDtFor(feeder, s, e)).map(x => ({ id: x.id, name: ccDtName(x.id), n: x.n })).sort((a, b) => (b.n - a.n) || a.name.localeCompare(b.name));
+}
+function renderFeederNetwork(entries, s, e) {
+  if (document.getElementById('ccKpis')) entries = ccFeederEntries();
+  ccLast = { entries, s, e };
+  const net = document.getElementById('ccNet'), det = document.getElementById('ccDetail'), hint = document.getElementById('ccHint');
+  if (!net || !det) return;
+  const esc = escapeHtml, n = entries.length;
+  if (ccSel && !entries.some(x => x[0] === ccSel)) ccSel = null;
+  if (!n) { net.innerHTML = ''; det.innerHTML = '<div class="cc-empty">No feeder data for this report</div>'; if (hint) hint.textContent = ''; return; }
+  const cx = 0, cy = 0, rx = n > 6 ? 200 : 175, ry = n > 6 ? 140 : 122;
+  const nodes = entries.map(([f, d], i) => {
+    const a = -Math.PI / 2 + i * 2 * Math.PI / n, dts = ccNodeDts(f, s, e);
+    return { f, d, dts, x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a), r: Math.min(46, 22 + Math.sqrt(d.total) * 1.5), c: CC_COL[i % CC_COL.length] };
+  });
+  // tight view box around hub, nodes and labels, so no empty space is left around them
+  let x0 = -46, x1 = 46, y0 = -46, y1 = 56;
+  nodes.forEach(nd => { const lh = Math.min(nd.f.length, 26) * 3.9 + 8, hw = Math.max(nd.r + 14, lh); x0 = Math.min(x0, nd.x - hw); x1 = Math.max(x1, nd.x + hw); y0 = Math.min(y0, nd.y - nd.r - 14); y1 = Math.max(y1, nd.y + nd.r + 44); });
+  const vw = Math.max(x1 - x0, 280), vh = Math.max(y1 - y0, 210), vx = x0 - (vw - (x1 - x0)) / 2, vy = y0 - (vh - (y1 - y0)) / 2;
+  let h = `<svg viewBox="${vx.toFixed(1)} ${vy.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}" class="cc-svg" role="img" aria-label="Feeder network"><defs><radialGradient id="ccG"><stop offset="0" stop-color="#22d3ee" stop-opacity=".35"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient></defs>`;
+  [0.45, 0.8, 1.15].forEach(k => h += `<ellipse cx="${cx}" cy="${cy}" rx="${(rx * k).toFixed(1)}" ry="${(ry * k).toFixed(1)}" fill="none" stroke="var(--ln)" stroke-width="1.4" stroke-dasharray="4 6"/>`);
+  nodes.forEach(nd => h += `<line x1="${cx}" y1="${cy}" x2="${nd.x.toFixed(1)}" y2="${nd.y.toFixed(1)}" stroke="${nd.c}" stroke-opacity=".9" stroke-width="${(3.5 + Math.min(5, nd.d.total / 120)).toFixed(1)}" stroke-linecap="round" stroke-dasharray="12 8"><animate attributeName="stroke-dashoffset" from="40" to="0" dur="1.5s" repeatCount="indefinite"/></line>`);
+  h += `<circle cx="${cx}" cy="${cy}" r="34" fill="url(#ccG)"/><circle cx="${cx}" cy="${cy}" r="13" fill="#22d3ee" stroke="var(--tx)" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="13" fill="none" stroke="#22d3ee" stroke-width="3"><animate attributeName="r" values="13;74" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;0" dur="2.4s" repeatCount="indefinite"/></circle><circle cx="${cx}" cy="${cy}" r="13" fill="none" stroke="#f472b6" stroke-width="3"><animate attributeName="r" values="13;74" dur="2.4s" begin="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;0" dur="2.4s" begin="1.2s" repeatCount="indefinite"/></circle><text x="${cx}" y="${cy + 32}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--mu)">AEDC GRID · ABUJA</text>`;
+  nodes.forEach(nd => {
+    const dim = ccSel && ccSel !== nd.f, sel = ccSel === nd.f, lab = nd.f.length > 26 ? nd.f.slice(0, 25) + '…' : nd.f;
+    h += `<g class="nd" data-f="${esc(nd.f)}" onclick="ccPick(this.dataset.f)" opacity="${dim ? .3 : 1}"><title>${esc(nd.f)} · ${nd.d.total} captures${nd.d.dss > 0 ? ' · ' + nd.d.dss + ' DTs captured' : ''}</title>`
+      + `<circle cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${nd.r + 12}" fill="${nd.c}" fill-opacity=".25"/>`
+      + `<circle class="c" cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${nd.r}" fill="${nd.c}" stroke="${sel ? 'var(--tx)' : 'none'}" stroke-width="3"/>`
+      + (sel ? `<circle cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${nd.r}" fill="none" stroke="var(--tx)" stroke-width="2"><animate attributeName="r" values="${nd.r + 2};${nd.r + 16}" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.2s" repeatCount="indefinite"/></circle>` : '')
+      + `<text x="${nd.x.toFixed(1)}" y="${(nd.y + Math.max(5, nd.r * .18)).toFixed(1)}" text-anchor="middle" font-size="${Math.max(15, nd.r * .55).toFixed(0)}" font-weight="800" fill="#0b0720">${nd.d.total}</text>`
+      + `<text x="${nd.x.toFixed(1)}" y="${(nd.y + nd.r + 19).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--tx)">${esc(lab)}</text>`
+      + `<text x="${nd.x.toFixed(1)}" y="${(nd.y + nd.r + 34).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--mu)">${nd.d.dss > 0 ? nd.d.dss + ' DT' + (nd.d.dss === 1 ? '' : 's') : ''}</text></g>`;
+  });
+  net.innerHTML = h + '</svg>';
+  det.innerHTML = nodes.filter(nd => !ccSel || ccSel === nd.f).map(nd => {
+    const n = nd.dts.length, chips = nd.dts.slice(0, 300).map(t => `<span class="cc-dt on" title="${esc(t.id)}">${esc(t.name)} <i>×${t.n}</i></span>`).join('') + (n > 300 ? `<span class="cc-none">+${n - 300} more</span>` : '');
+    const drop = n ? `<details class="cc-more"><summary>DT names captured (${n})</summary><div style="margin-top:6px">${chips}</div></details>` : '';
+    const pill = nd.d.dss > 0 ? `<span class="cc-pill">${nd.d.dss} DT${nd.d.dss === 1 ? '' : 's'} captured</span>` : '';
+    const nm = [...nd.d.names].sort((a, b) => a.localeCompare(b)), who = nm.length ? `<details class="cc-more"><summary>👥 ${nm.length} enumerator${nm.length === 1 ? '' : 's'} worked</summary><div class="cc-namelist">${nm.map(x => `<span>${esc(x)}</span>`).join('')}</div></details>` : '';
+    return `<div class="cc-card" style="--k:${nd.c}"><div class="cc-ct"><b>⚡ ${esc(nd.f)}</b><span>${nd.d.total}</span></div>${pill}${who}${drop}</div>`;
+  }).join('');
+  const worked = new Set(); nodes.forEach(nd => nd.dts.forEach(t => worked.add(t.id.toLowerCase())));
+  if (hint) hint.textContent = ccSel ? `Showing ${ccSel} · tap the node again to show all` : (worked.size ? `${worked.size} DT names captured in this report` : '');
+}
+function ccFilterRows() {
+  document.querySelectorAll('#feederSummaryBody tr[data-feeder]').forEach(tr => { tr.style.display = (!ccSel || tr.dataset.feeder === ccSel) ? '' : 'none'; });
+}
+function ccPick(f) { ccSel = ccSel === f ? null : f; if (document.getElementById('ccKpis')) ccDraw(); else if (ccLast) renderFeederNetwork(ccLast.entries, ccLast.s, ccLast.e); ccFilterRows(); }
+function ccRefresh() { try { if (typeof renderFeederSummary === 'function') renderFeederSummary(); } catch (e) { console.error(e); } }
+
+/* ===== Full Command Center renderer (reads reportResults; legacy tables stay available in Classic view) ===== */
+let ccG = 'ALL', ccST = '', ccQv = '';
+const CC_GR = ['aedc', 'bss', 'nysc'], CC_GN = { aedc: 'AEDC', bss: 'BSS', nysc: 'NYSC' };
+const ccE = v => escapeHtml(String(v == null ? '' : v));
+function ccTarget() { try { return (typeof perfDailyTarget === 'function' && perfDailyTarget()) || 30; } catch (e) { return 30; } }
+function ccRange() { const s = reportResults.dateKey || null; return [s, reportResults.endDateKey || s]; }
+function ccFeeder(r) {
+  const [s, e] = ccRange();
+  return (typeof fvSessionOverrides !== 'undefined' && fvSessionOverrides[r.username]) || r.savedFeeder || (typeof getTopFeeder === 'function' ? getTopFeeder(r.username, s, e) : '') || '';
+}
+function ccRows() {
+  const out = [];
+  CC_GR.forEach(g => ((reportResults[g] && reportResults[g].results) || []).forEach(r => { if (ccG === 'ALL' || CC_GN[g] === ccG) out.push(Object.assign({}, r, { g, f: r.total > 0 && r.status === 'present' ? ccFeeder(r) : '' })); }));
+  return out;
+}
+function ccFeederEntries() {
+  const map = {};
+  ccRows().forEach(r => { if (!r.f) return; const m = map[r.f] || (map[r.f] = { names: new Set(), total: 0, dss: 0 }); m.names.add(r.fullname); m.total += r.total || 0; m.dss += r.dss || 0; });
+  return Object.entries(map).sort((a, b) => b[1].total - a[1].total);
+}
+function ccView() { return ccRows().filter(r => !ccSel || r.f === ccSel); }
+function ccKpis() {
+  const v = ccView(), t = k => v.reduce((a, r) => a + (r[k] || 0), 0), T = ccTarget();
+  const d = [['Total captures', t('total')], ['Customers', t('cust')], ['DT/DSS + HT', t('dss') + t('ht')], ['LT poles', t('lt')], ['Met target', v.filter(r => r.status === 'present' && r.total >= T).length], ['Issues', t('issues')]];
+  const el = document.getElementById('ccKpis'); if (!el) return;
+  el.innerHTML = d.map(([l, n]) => `<div class="card kpi"><b data-n="${n}">${n.toLocaleString()}</b><span>${l}</span></div>`).join('');
+  el.querySelectorAll('[data-n]').forEach(b => { const n = +b.dataset.n; let i = 0; b.textContent = '0'; (function st() { i += Math.ceil(n / 25) || 1; b.textContent = Math.min(i, n).toLocaleString(); if (i < n) requestAnimationFrame(st); })(); });
+}
+function ccLb() {
+  const T = ccTarget(), v = ccView().filter(r => r.status === 'present' && r.total > 0).sort((a, b) => b.total - a.total).slice(0, 12), el = document.getElementById('ccLb'), tt = document.getElementById('ccLbT');
+  if (!el) return; if (tt) tt.textContent = ccSel ? 'Leaderboard · ' + ccSel : 'Leaderboard · top 12';
+  const medal = ['🥇', '🥈', '🥉'];
+  el.innerHTML = v.map((r, i) => `<div class="row"><span>${i < 3 ? medal[i] : i + 1}</span><div><span style="color:${CC_COL[Math.max(0, ccFeederEntries().findIndex(x => x[0] === r.f)) % CC_COL.length]}">●</span> ${ccE(r.fullname)} <small style="color:var(--mu)">${CC_GN[r.g]}</small><div class="bar"><i style="width:${Math.min(r.total / T * 100, 100)}%;background:${r.total >= T ? 'linear-gradient(90deg,#34d399,#a3e635)' : r.g === 'aedc' ? 'linear-gradient(90deg,#f472b6,#fb923c)' : 'linear-gradient(90deg,#22d3ee,#818cf8)'}"></i></div></div><em>${r.total}</em></div>`).join('') || '<div class="al">No captures for this view yet.</div>';
+}
+function ccTxt(id) { const e = document.getElementById(id); return e ? (e.innerText || e.textContent || '').trim() : ''; }
+function ccClone(el) {
+  if (!el) return '';
+  const c = el.cloneNode(true);
+  c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id')); c.removeAttribute('id');
+  c.querySelectorAll('.no-print,.admin-only,button,input,textarea,select').forEach(n => n.remove());
+  return c.outerHTML;
+}
+function ccMore(wrapId, inner) {
+  const d = document.querySelector('#' + wrapId + ' details'), open = d && d.open;
+  return `<details class="cc-more"${open ? ' open' : ''}><summary>View full details</summary><div class="cc-classic">${inner}</div></details>`;
+}
+function ccAlerts() {
+  if (!document.getElementById('ccAl1')) return;
+  const a1 = document.getElementById('ccAl1'); if (!a1) return;
+  if (window.CC_EXPORT) {
+    a1.innerHTML = CC_EXPORT.al1; const b = document.getElementById('ccAl2'); if (b) b.innerHTML = CC_EXPORT.al2;
+    const c = document.getElementById('ccAl3'); if (c) c.innerHTML = CC_EXPORT.al3; const c2 = document.getElementById('ccAl3c'); if (c2) c2.style.display = CC_EXPORT.al3show ? '' : 'none';
+    return;
+  }
+  const ua = document.getElementById('unauthorizedMappingAlert'), tb = document.getElementById('unauthTableBody');
+  const rows = tb ? [...tb.rows].filter(r => r.cells.length >= 6) : [], atx = ccTxt('unauthAlertText'), rem = document.getElementById('feederRemarkDisplay');
+  if (ua && ua.style.display !== 'none' && (rows.length || atx)) {
+    const staff = new Set(rows.map(r => r.cells[1].textContent.trim())).size, poles = rows.reduce((s, r) => s + (parseInt(r.cells[5].textContent, 10) || 0), 0);
+    let inner = ccClone(document.getElementById('unauthAlertText')) + (rows.length ? '<div style="height:8px"></div>' + ccClone(document.getElementById('unauthTable')) : '');
+    if (rem && rem.textContent.trim()) { const r2 = rem.cloneNode(true); r2.removeAttribute('id'); r2.style.display = 'block'; inner += '<div style="height:8px"></div>' + r2.outerHTML; }
+    a1.innerHTML = `<div class="cc-fig"><div><b>${staff}</b><span>staff flagged</span></div><div><b>${poles}</b><span>poles outside assigned feeder</span></div></div>` + ccMore('ccAl1', inner);
+  } else a1.innerHTML = '<div class="al">✅ No unauthorized mapping flagged for this report.</div>';
+  const a2 = document.getElementById('ccAl2'), cr = document.getElementById('cbfTableBody'), crows = cr ? [...cr.rows].filter(r => r.cells.length >= 6) : [], sm = document.getElementById('cbfSummary'), ctx = ccTxt('cbfAlertText');
+  if (a2) {
+    if (sm && (sm.textContent.trim() || ctx)) {
+      const inner = ccClone(document.getElementById('cbfAlertText')) + (cr ? '<div style="height:8px"></div>' + ccClone(cr.closest('table')) : '');
+      a2.innerHTML = `<div class="cc-fig"><div><b>${crows.length}</b><span>flagged forms</span></div></div><div class="cc-classic" style="background:transparent;padding:0">${ccClone(sm)}</div>` + ccMore('ccAl2', inner);
+    } else a2.innerHTML = '<div class="al">No call-back form audit loaded for this date.</div>';
+  }
+  const il = ccTxt('issueLogReminderText'), x = document.getElementById('ccAl3'); if (x) x.innerHTML = il ? `<div class="al" style="white-space:pre-wrap">${ccE(il)}</div>` : '';
+  const x2 = document.getElementById('ccAl3c'); if (x2) x2.style.display = il ? '' : 'none';
+}
+function ccAttendance() {
+  const rows = ccRows(), c = s => rows.filter(r => r.status === s).length, ic = { absent: '🚫', sick: '🤒', excused: '📝', supervision: '🕵️' };
+  document.getElementById('ccAttT').textContent = `Attendance · ${c('present')} present · ${c('absent')} absent · ${c('excused')} excused · ${c('sick')} sick · ${c('supervision')} on supervision`;
+  const chips = rows.filter(r => r.status !== 'present').map(r => `<span>${ic[r.status] || '•'} ${ccE(r.fullname)}${r.status === 'excused' && r.excuseRemark ? ' — ' + ccE(r.excuseRemark) : ''}</span>`)
+    .concat(rows.filter(r => r.status === 'present' && !r.total).map(r => `<span>🟡 ${ccE(r.fullname)} · zero entries</span>`));
+  document.getElementById('ccCh').innerHTML = chips.join('') || '<span>🎉 Everyone present with captures</span>';
+}
+function ccTable() {
+  const el = document.getElementById('ccTbl'); if (!el) return; const T = ccTarget(), q = ccQv.toLowerCase(); let out = '', gt = [0, 0, 0, 0, 0, 0];
+  CC_GR.filter(g => ccG === 'ALL' || CC_GN[g] === ccG).forEach(g => {
+    let r = ccView().filter(x => x.g === g).map(x => Object.assign(x, { k: x.status !== 'present' ? 'off' : x.total >= T ? 'met' : 'below' }));
+    r = r.filter(x => (!ccST || x.k === ccST) && (x.fullname + ' ' + (x.f || '')).toLowerCase().includes(q));
+    if (!r.length && !(reportResults[g] && reportResults[g].results.length)) return;
+    r.sort((a, b) => (b.total - a.total));
+    const t = k => r.reduce((a, x) => a + (x[k] || 0), 0), keys = ['dss', 'ht', 'cust', 'lt', 'issues', 'total']; keys.forEach((k, i) => gt[i] += t(k));
+    const lbl = { absent: 'Absent', sick: 'Sick', excused: 'Excused', supervision: 'ON SUPERVISION' }, z = n => n || '-';
+    out += `<div class="gt"><b>${CC_GN[g]} Enumerators</b> <span style="color:var(--mu)">(${r.length})</span></div><div class="tw"><table><thead><tr><th>S/N</th><th>Full Name</th><th>DT/DSS</th><th>HT</th><th>Cust</th><th>LT</th><th>Issues</th><th>Total</th><th>Status</th><th>Feeder</th><th>Remark</th></tr></thead><tbody>`
+      + r.map((x, i) => {
+        const p = Math.round((x.total || 0) / T * 100); let st, rm = '—';
+        if (x.status !== 'present') { st = `<span class="bd ${x.status === 'supervision' ? 'su' : 'ab'}">${lbl[x.status] || x.status}</span>`; rm = ccE(x.excuseRemark || '') + (x.status === 'excused' && x.excuseApproval ? ` (${ccE(x.excuseApproval)})` : '') || '—'; }
+        else { st = `<span class="bd ${x.total >= T ? 'ok' : 'no'}">${x.total} ✓ (${p}%)</span>`; rm = `${p}% of target (${p > 100 ? 'EXCEEDED' : p === 100 ? 'MET' : 'NOT MET'})` + (!x.total && x.zeroRemark ? ' · ' + ccE(x.zeroRemark) : ''); }
+        return `<tr><td class="n">${i + 1}</td><td>${ccE(x.fullname)}</td><td class="n">${z(x.dss)}</td><td class="n">${z(x.ht)}</td><td class="n">${z(x.cust)}</td><td class="n">${z(x.lt)}</td><td class="n">${z(x.issues)}</td><td class="n"><b>${x.total || 0}</b></td><td>${st}</td><td>${x.f ? '⚡ ' + ccE(x.f) : '—'}</td><td>${rm}</td></tr>`;
+      }).join('') + `</tbody><tfoot><tr><td></td><td>TOTAL (${r.length})</td>${keys.map(k => `<td class="n">${t(k)}</td>`).join('')}<td colspan="3"></td></tr></tfoot></table></div>`;
+  });
+  if (ccG === 'ALL' && !ccSel && !ccST && !q) out += `<div class="gt"><b>Grand Total</b> — DT/DSS ${gt[0]} · HT ${gt[1]} · Customers ${gt[2]} · LT ${gt[3]} · Issues ${gt[4]} · <b style="color:var(--ac)">${gt[5]}</b></div>`;
+  el.innerHTML = out || '<div class="al">No staff match this view.</div>';
+}
+function ccDraw() { ccKpis(); ccLb(); ccAttendance(); ccTable(); renderFeederNetwork(ccFeederEntries(), ...ccRange()); }
+function ccRenderAll() {
+  const root = document.getElementById('ccRoot'); if (!root) return;
+  if (!CC_GR.some(g => reportResults[g] && (reportResults[g].results || []).length)) { root.innerHTML = '<div class="card" style="text-align:center;padding:30px"><h2>GIS Command Center</h2><div class="al">Upload data files and generate a report (or pick a saved date) to see the Command Center.</div></div>'; return; }
+  const seg = ['ALL', 'AEDC', 'BSS', 'NYSC'].map(g => `<button class="${g === ccG ? 'on' : ''}" onclick="ccSetG('${g}')">${g === 'ALL' ? 'All' : g}</button>`).join('');
+  root.innerHTML = `<div class="seg no-print" style="margin-bottom:12px">${seg}</div><div class="kpis" id="ccKpis"></div>
+<div class="grid">
+<div class="card cc-fill"><h2>Feeder network · tap a node to filter <span id="ccHint" class="cc-hint"></span></h2><div id="ccNet"></div><div class="legend"><span>Node size = captures</span><span>Colours = feeders</span><span>Schematic layout, not to scale</span></div></div>
+<div class="card cc-fill"><h2 id="ccLbT">Leaderboard</h2><div id="ccLb"></div></div>
+<div class="cc-grid" id="ccDetail" style="grid-column:1/-1"></div>
+<div class="card" style="grid-column:1/-1;--k:#a3e635"><h2>Staff performance breakdown · target ${ccTarget()}/day</h2><div class="tools"><input id="ccQ" placeholder="🔍 Search staff or feeder…" value="${ccE(ccQv)}" oninput="ccSetQ(this.value)"><span id="ccSf">${[['', 'All'], ['met', 'Met target'], ['below', 'Below'], ['off', 'Absent / Excused / Supervision']].map(([k, l]) => `<button class="${k === ccST ? 'on' : ''}" onclick="ccSetST('${k}')">${l}</button>`).join(' ')}</span></div><div id="ccTbl"></div></div>
+<div class="card alert" style="--k:#fb7185"><h2>⚠ Unauthorized mapping</h2><div id="ccAl1"></div></div>
+<div class="card alert" style="border-color:var(--wa);--k:#fbbf24"><h2>📄 Call-back form audit</h2><div id="ccAl2"></div></div>
+<div class="card" style="grid-column:1/-1;--k:#a78bfa"><h2 id="ccAttT">Attendance</h2><div class="chips" id="ccCh"></div></div>
+<div class="card" id="ccAl3c" style="grid-column:1/-1;--k:#fb923c"><h2>📣 Issue log reminder</h2><div id="ccAl3"></div></div>
+</div>`;
+  ccSnapshot(); ccAlerts(); ccDraw();
+}
+function ccSetG(g) { ccG = g; ccSel = null; ccRenderAll(); }
+function ccSetST(k) { ccST = k; ccRenderAll(); }
+function ccSetQ(v) { ccQv = v; ccTable(); }
+
+/* ---- Export: embed data + this script so the exported HTML stays interactive (nodes, switch, search) ---- */
+function ccExportScript(clone) {
+  try {
+    if (!clone.classList.contains('cc-on')) return '';
+    const rows = g => ((reportResults[g] && reportResults[g].results) || []).map(r => ({ username: r.username, fullname: r.fullname, dss: r.dss || 0, ht: r.ht || 0, cust: r.cust || 0, lt: r.lt || 0, issues: r.issues || 0, total: r.total || 0, status: r.status, excuseRemark: r.excuseRemark || '', excuseApproval: r.excuseApproval || '', zeroRemark: r.zeroRemark || '', savedFeeder: (r.total > 0 && r.status === 'present') ? ccFeeder(r) : '' }));
+    const rr = { aedc: { results: rows('aedc') }, bss: { results: rows('bss') }, nysc: { results: rows('nysc') }, dateKey: reportResults.dateKey, endDateKey: reportResults.endDateKey, formattedDate: reportResults.formattedDate, ccDt: reportResults.ccDt || null };
+    const g = id => { const x = document.getElementById(id); return x ? x.innerHTML : ''; }, c3 = document.getElementById('ccAl3c');
+    const payload = { on: true, target: ccTarget(), rr, al1: g('ccAl1'), al2: g('ccAl2'), al3: g('ccAl3'), al3show: !c3 || c3.style.display !== 'none' };
+    const stubs = "var reportResults=CC_EXPORT.rr,fvSessionOverrides={},feederLookup={},userFeederData={},firebaseInitialized=false;"
+      + "function escapeHtml(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]})}"
+      + "function perfDailyTarget(){return CC_EXPORT.target}function getTopFeeder(){return ''}function showStatus(){}function updateDashboard(){}async function loadFeederLookupFromCloud(){}";
+    const src = document.getElementById('ccScript').textContent.replace(/<\/script/gi, '<\\/script');
+    return '<script>window.CC_EXPORT=' + JSON.stringify(payload).replace(/<\//g, '<\\/') + ';\n' + stubs + '\n' + src + '\n<' + '/script>';
+  } catch (err) { console.error('ccExportScript', err); return ''; }
+}
+
+/* ---- Command Center / Classic switch ---- */
+function ccTitle() {
+  const d = (reportResults && reportResults.formattedDate) || 'Enumeration', on = document.getElementById('dashboardCapture').classList.contains('cc-on');
+  return on ? `<span class="cc-sig">🛰️</span>${escapeHtml(d)} · GIS Command Center` : `📊 ${d} GIS Enumeration & Asset Mapping Performance Dashboard`;
+}
+const CC_THEMES = { dark: 1, light: 1, ocean: 1, sunset: 1 };
+let ccTheme = 'dark';
+function ccSetTheme(t) {
+  if (!CC_THEMES[t]) t = 'dark'; ccTheme = t;
+  try { if (!window.CC_EXPORT) localStorage.setItem('eih_cc_theme', t); } catch (e) {}
+  const el = document.getElementById('dashboardCapture'); if (el) el.setAttribute('data-cc-theme', t);
+  if (document.body.classList.contains('cc-mode')) document.body.setAttribute('data-cc-theme', t);
+  const sel = document.getElementById('ccThemeSel'); if (sel) sel.value = t;
+}
+function ccApplyMode(on) {
+  const el = document.getElementById('dashboardCapture'); if (!el) return;
+  el.classList.toggle('cc-on', on);
+  const b = document.getElementById('ccToggleBtn'); if (b) b.innerHTML = on ? '🕰️ Classic view' : '🛰️ Command Center';
+  try { localStorage.setItem('eih_cc', on ? '1' : '0'); } catch (e) {}
+  if (!window.CC_EXPORT) document.body.classList.toggle('cc-mode', on);
+  if (on && typeof ccRenderAll === 'function') ccRenderAll();
+  if (!window.CC_EXPORT) document.body.classList.toggle('cc-mode', on);
+  if (on) ccSetTheme(ccTheme); else document.body.removeAttribute('data-cc-theme');
+  const h = document.getElementById('dashboardDateHeader'); if (h && reportResults && reportResults.formattedDate) h.innerHTML = ccTitle();
+}
+(function ccInit() {
+  const st = document.createElement('style'); st.id = 'ccStyle'; st.textContent = CC_CSS; document.head.appendChild(st);
+  let on = true;
+  if (window.CC_EXPORT) { dtLookup = {}; dtDayData = {}; on = !!CC_EXPORT.on; }
+  else { try { const o = JSON.parse(localStorage.getItem('eih_dtLookup') || '{}'); if (o && typeof o === 'object') dtLookup = o; } catch (e) {} try { on = localStorage.getItem('eih_cc') !== '0'; } catch (e) {} }
+  ccStatus();
+  try { ccTheme = window.CC_EXPORT ? ((document.getElementById('dashboardCapture') || document.body).getAttribute('data-cc-theme') || 'dark') : (localStorage.getItem('eih_cc_theme') || 'dark'); } catch (e) {}
+  ccApplyMode(on);
+  const _u = updateDashboard;
+  updateDashboard = function () { const r = _u.apply(this, arguments); try { if (document.getElementById('dashboardCapture').classList.contains('cc-on')) ccRenderAll(); } catch (e) { console.error(e); } return r; };
+  try { let t; new MutationObserver(m => { const root = document.getElementById('ccRoot'); if (!m.some(x => !root.contains(x.target))) return; clearTimeout(t); t = setTimeout(() => { try { ccAlerts(); } catch (e) {} }, 200); }).observe(document.getElementById('dashboardCapture'), { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['style'] }); } catch (e) {}
+  const _f = loadFeederLookupFromCloud;
+  loadFeederLookupFromCloud = async function () { await _f.apply(this, arguments); await ccLoadDtCloud(); };
+})();
+
 </script>
 
 </body>
